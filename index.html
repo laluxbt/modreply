@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ModReply" />
+  <meta name="theme-color" content="#1E1F22" />
+  <title>ModReply</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #1E1F22;
+      --surface:   #2B2D31;
+      --card:      #313338;
+      --border:    #3F4147;
+      --blurple:   #5865F2;
+      --blurple-d: #4752C4;
+      --green:     #23A55A;
+      --red:       #F23F43;
+      --text:      #DBDEE1;
+      --muted:     #949BA4;
+      --white:     #FFFFFF;
+      --radius:    12px;
+      --radius-sm: 8px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    #root { height: 100%; display: flex; flex-direction: column; }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 32px; height: 32px;
+      background: var(--blurple);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+    }
+    .header h1 { font-size: 17px; font-weight: 700; color: var(--white); }
+    .header-actions { display: flex; gap: 8px; }
+    .icon-btn {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .icon-btn:hover, .icon-btn:active { background: var(--blurple); color: var(--white); border-color: var(--blurple); }
+
+    /* ── CATEGORIES ── */
+    .cat-scroll {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+    .cat-scroll::-webkit-scrollbar { display: none; }
+    .cat-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .cat-chip.active {
+      background: var(--blurple);
+      border-color: var(--blurple);
+      color: var(--white);
+    }
+
+    /* ── MAIN SCROLL ── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── TEMPLATE CARDS ── */
+    .template-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+      position: relative;
+      overflow: hidden;
+    }
+    .template-card:active { transform: scale(0.985); }
+    .template-card.copied {
+      border-color: var(--green);
+    }
+    .template-card.copied::after {
+      content: '✓ Copied!';
+      position: absolute;
+      top: 10px; right: 12px;
+      background: var(--green);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      animation: fadeOut 1.4s forwards;
+    }
+    @keyframes fadeOut {
+      0%   { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.3;
+    }
+    .shortcode {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blurple);
+      background: rgba(88,101,242,0.15);
+      border: 1px solid rgba(88,101,242,0.3);
+      padding: 2px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .card-body {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .card-body .var-tag {
+      color: #E8912D;
+      font-weight: 600;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .cat-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .card-actions { display: flex; gap: 6px; }
+    .small-btn {
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-edit {
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-edit:hover { color: var(--white); }
+    .btn-delete {
+      background: rgba(242,63,67,0.1);
+      color: var(--red);
+      border: 1px solid rgba(242,63,67,0.25);
+    }
+    .btn-delete:hover { background: var(--red); color: white; }
+
+    /* ── EMPTY STATE ── */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+    .empty p { font-size: 13px; line-height: 1.6; }
+
+    /* ── SEARCH BAR ── */
+    .search-bar {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      flex-shrink: 0;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .search-input-wrap {
+      flex: 1;
+      position: relative;
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 15px;
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 10px 12px 10px 36px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-input:focus { border-color: var(--blurple); }
+    .search-input::placeholder { color: var(--muted); }
+
+    .add-btn {
+      width: 42px; height: 42px;
+      border-radius: var(--radius-sm);
+      background: var(--blurple);
+      border: none;
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+      font-weight: 300;
+    }
+    .add-btn:hover { background: var(--blurple-d); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      animation: fadeIn 0.15s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      width: 100%;
+      padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+      animation: slideUp 0.2s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-handle {
+      width: 40px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+    .modal h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      resize: none;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--blurple); }
+    .field select option { background: var(--card); }
+    .field-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-cancel {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-save {
+      flex: 2;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      background: var(--blurple);
+      border: none;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-save:hover { background: var(--blurple-d); }
+
+    /* ── VAR PICKER ── */
+    .var-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .var-chip {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(232,145,45,0.15);
+      color: #E8912D;
+      border: 1px solid rgba(232,145,45,0.3);
+      cursor: pointer;
+    }
+    .var-chip:hover { background: rgba(232,145,45,0.3); }
+
+    /* ── EXPORT/IMPORT MENU ── */
+    .menu-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: flex-end;
+      animation: fadeIn 0.15s ease;
+    }
+    .menu {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      width: 100%;
+      padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+      animation: slideUp 0.2s ease;
+    }
+    .menu h3 {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 6px;
+    }
+    .menu-item:hover, .menu-item:active { background: var(--card); }
+    .menu-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .menu-icon.blue { background: rgba(88,101,242,0.2); }
+    .menu-icon.green { background: rgba(35,165,90,0.2); }
+    .menu-icon.red { background: rgba(242,63,67,0.15); }
+    .menu-item-text strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 2px;
+    }
+    .menu-item-text span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--blurple);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      padding: 0 6px;
+      margin-left: 6px;
+    }
+
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ── DEFAULT TEMPLATES ──
+const DEFAULT_TEMPLATES = [
+  {
+    id: 't1',
+    title: 'Opening Message',
+    shortcode: '/open',
+    category: 'Greeting',
+    body: 'Hi {username}! 👋 How can I assist you today?',
+  },
+  {
+    id: 't2',
+    title: 'Closing Message',
+    shortcode: '/close',
+    category: 'Closing',
+    body: 'Enjoy! 🎉 Feel free to reach out anytime if you need further help.',
+  },
+  {
+    id: 't3',
+    title: 'KYC Reminder',
+    shortcode: '/kyc',
+    category: 'KYC',
+    body: 'Hi {username}, please complete your KYC verification to continue. You can do this via the link provided in #verification. Let us know if you run into any issues!',
+  },
+  {
+    id: 't4',
+    title: 'KYC Approved',
+    shortcode: '/kyc-ok',
+    category: 'KYC',
+    body: 'Great news {username}! ✅ Your KYC has been approved. You now have full access. Welcome aboard!',
+  },
+  {
+    id: 't5',
+    title: 'Rule Reminder',
+    shortcode: '/rules',
+    category: 'Moderation',
+    body: 'Hey {username}, just a friendly reminder to keep the discussion in line with our community rules. Please check #rules for reference. Thanks for understanding! 🙏',
+  },
+  {
+    id: 't6',
+    title: 'Ticket Acknowledge',
+    shortcode: '/ack',
+    category: 'Support',
+    body: 'Hi {username}, thanks for reaching out! I have received your message and will look into this shortly. Please bear with us.',
+  },
+  {
+    id: 't7',
+    title: 'Escalation Notice',
+    shortcode: '/escalate',
+    category: 'Support',
+    body: 'Hi {username}, I am escalating your issue to our senior team for further review. You will hear back within 24 hours. Apologies for the inconvenience.',
+  },
+  {
+    id: 't8',
+    title: 'Warning Notice',
+    shortcode: '/warn',
+    category: 'Moderation',
+    body: 'Hi {username}, this is an official warning regarding your recent behaviour in the server. Please review our community guidelines. Repeated violations may result in further action.',
+  },
+];
+
+const CATEGORIES = ['All', 'Greeting', 'Closing', 'KYC', 'Support', 'Moderation'];
+const VARIABLES = ['{username}', '{channel}', '{date}', '{time}'];
+
+function highlightVars(text) {
+  const parts = text.split(/(\{[^}]+\})/g);
+  return parts.map((p, i) =>
+    /^\{.+\}$/.test(p)
+      ? <span key={i} className="var-tag">{p}</span>
+      : p
+  );
+}
+
+function useTemplates() {
+  const [templates, setTemplates] = useState(() => {
+    try {
+      const saved = localStorage.getItem('modreply_templates');
+      return saved ? JSON.parse(saved) : DEFAULT_TEMPLATES;
+    } catch { return DEFAULT_TEMPLATES; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('modreply_templates', JSON.stringify(templates));
+  }, [templates]);
+
+  const add = (t) => setTemplates(prev => [{ ...t, id: 't' + Date.now() }, ...prev]);
+  const update = (id, t) => setTemplates(prev => prev.map(x => x.id === id ? { ...x, ...t } : x));
+  const remove = (id) => setTemplates(prev => prev.filter(x => x.id !== id));
+  const importAll = (list) => setTemplates(list);
+
+  return { templates, add, update, remove, importAll };
+}
+
+// ── MODAL ──
+function TemplateModal({ initial, onSave, onClose }) {
+  const isEdit = !!initial;
+  const textareaRef = useRef(null);
+  const [form, setForm] = useState(initial || { title: '', shortcode: '', category: 'Support', body: '' });
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const insertVar = (v) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart, end = el.selectionEnd;
+    const newBody = form.body.slice(0, start) + v + form.body.slice(end);
+    set('body', newBody);
+    setTimeout(() => { el.selectionStart = el.selectionEnd = start + v.length; el.focus(); }, 0);
+  };
+
+  const handleSave = () => {
+    if (!form.title.trim() || !form.body.trim()) return;
+    onSave(form);
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-handle" />
+        <h2>{isEdit ? 'Edit Template' : 'New Template'}</h2>
+
+        <div className="field">
+          <label>Title</label>
+          <input value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. Opening Message" />
+        </div>
+
+        <div className="field">
+          <label>Shortcode</label>
+          <input value={form.shortcode} onChange={e => set('shortcode', e.target.value)} placeholder="e.g. /open" />
+          <div className="field-hint">Used for quick search. Start with /</div>
+        </div>
+
+        <div className="field">
+          <label>Category</label>
+          <select value={form.category} onChange={e => set('category', e.target.value)}>
+            {['Greeting','Closing','KYC','Support','Moderation','Other'].map(c =>
+              <option key={c}>{c}</option>
+            )}
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Message</label>
+          <textarea
+            ref={textareaRef}
+            rows={5}
+            value={form.body}
+            onChange={e => set('body', e.target.value)}
+            placeholder="Type your reply here..."
+          />
+          <div className="field-hint">Tap a variable to insert it at cursor:</div>
+          <div className="var-chips">
+            {VARIABLES.map(v => <span key={v} className="var-chip" onClick={() => insertVar(v)}>{v}</span>)}
+          </div>
+        </div>
+
+        <div className="modal-actions">
+          <button className="btn-cancel" onClick={onClose}>Cancel</button>
+          <button className="btn-save" onClick={handleSave}>{isEdit ? 'Save Changes' : 'Add Template'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MENU ──
+function ExportMenu({ templates, onImport, onClose }) {
+  const fileRef = useRef(null);
+
+  const handleExport = () => {
+    const data = JSON.stringify(templates, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'modreply-templates.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    onClose();
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (Array.isArray(parsed)) { onImport(parsed); onClose(); }
+        else alert('Invalid file format.');
+      } catch { alert('Could not read file.'); }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleReset = () => {
+    if (confirm('Reset all templates to defaults? This cannot be undone.')) {
+      onImport(DEFAULT_TEMPLATES);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="menu-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="menu">
+        <div className="modal-handle" />
+        <h3>Template Library</h3>
+
+        <div className="menu-item" onClick={handleExport}>
+          <div className="menu-icon blue">📤</div>
+          <div className="menu-item-text">
+            <strong>Export Templates</strong>
+            <span>Save as .json file — share with other mods</span>
+          </div>
+        </div>
+
+        <div className="menu-item" onClick={() => fileRef.current.click()}>
+          <div className="menu-icon green">📥</div>
+          <div className="menu-item-text">
+            <strong>Import Templates</strong>
+            <span>Load from a .json file</span>
+          </div>
+        </div>
+
+        <div className="menu-item" onClick={handleReset}>
+          <div className="menu-icon red">🔄</div>
+          <div className="menu-item-text">
+            <strong>Reset to Defaults</strong>
+            <span>Restore original templates</span>
+          </div>
+        </div>
+
+        <input type="file" ref={fileRef} accept=".json" onChange={handleImport} />
+      </div>
+    </div>
+  );
+}
+
+// ── CARD ──
+function TemplateCard({ t, onEdit, onDelete }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    const text = t.body
+      .replace(/\{date\}/g, new Date().toLocaleDateString())
+      .replace(/\{time\}/g, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
+    } else {
+      const el = document.createElement('textarea');
+      el.value = text; document.body.appendChild(el); el.select();
+      document.execCommand('copy'); document.body.removeChild(el);
+      setCopied(true); setTimeout(() => setCopied(false), 1500);
+    }
+  };
+
+  return (
+    <div className={`template-card${copied ? ' copied' : ''}`} onClick={handleCopy}>
+      <div className="card-top">
+        <div className="card-title">{t.title}</div>
+        <div className="shortcode">{t.shortcode}</div>
+      </div>
+      <div className="card-body">{highlightVars(t.body)}</div>
+      <div className="card-footer">
+        <span className="cat-label">{t.category}</span>
+        <div className="card-actions" onClick={e => e.stopPropagation()}>
+          <button className="small-btn btn-edit" onClick={() => onEdit(t)}>Edit</button>
+          <button className="small-btn btn-delete" onClick={() => onDelete(t.id)}>Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── APP ──
+function App() {
+  const { templates, add, update, remove, importAll } = useTemplates();
+  const [query, setQuery] = useState('');
+  const [cat, setCat] = useState('All');
+  const [showModal, setShowModal] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
+
+  const filtered = templates.filter(t => {
+    const matchCat = cat === 'All' || t.category === cat;
+    const q = query.toLowerCase();
+    const matchQ = !q ||
+      t.title.toLowerCase().includes(q) ||
+      t.shortcode.toLowerCase().includes(q) ||
+      t.body.toLowerCase().includes(q) ||
+      t.category.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  const openEdit = (t) => { setEditTarget(t); setShowModal(true); };
+  const openAdd  = () => { setEditTarget(null); setShowModal(true); };
+
+  const handleSave = (form) => {
+    if (editTarget) update(editTarget.id, form);
+    else add(form);
+  };
+
+  const catCounts = CATEGORIES.reduce((acc, c) => {
+    acc[c] = c === 'All' ? templates.length : templates.filter(t => t.category === c).length;
+    return acc;
+  }, {});
+
+  return (
+    <>
+      {/* HEADER */}
+      <div className="header">
+        <div className="header-left">
+          <div className="logo">⚡</div>
+          <h1>ModReply</h1>
+        </div>
+        <div className="header-actions">
+          <div className="icon-btn" onClick={() => setShowMenu(true)} title="More options">⋯</div>
+        </div>
+      </div>
+
+      {/* CATEGORIES */}
+      <div className="cat-scroll">
+        {CATEGORIES.map(c => (
+          <div
+            key={c}
+            className={`cat-chip${cat === c ? ' active' : ''}`}
+            onClick={() => setCat(c)}
+          >
+            {c}
+            {catCounts[c] > 0 && cat !== c && <span className="count-badge">{catCounts[c]}</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* CARDS */}
+      <div className="main">
+        {filtered.length === 0 ? (
+          <div className="empty">
+            <div className="empty-icon">{query ? '🔍' : '📋'}</div>
+            <h3>{query ? 'No results found' : 'No templates yet'}</h3>
+            <p>{query ? `Try a different keyword or shortcode.` : `Tap + to add your first template.`}</p>
+          </div>
+        ) : (
+          filtered.map(t => (
+            <TemplateCard key={t.id} t={t} onEdit={openEdit} onDelete={remove} />
+          ))
+        )}
+      </div>
+
+      {/* SEARCH + ADD */}
+      <div className="search-bar">
+        <div className="search-input-wrap">
+          <span className="search-icon">🔍</span>
+          <input
+            className="search-input"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search or type /shortcode…"
+          />
+        </div>
+        <button className="add-btn" onClick={openAdd}>+</button>
+      </div>
+
+      {/* MODALS */}
+      {showModal && (
+        <TemplateModal
+          initial={editTarget}
+          onSave={handleSave}
+          onClose={() => { setShowModal(false); setEditTarget(null); }}
+        />
+      )}
+      {showMenu && (
+        <ExportMenu
+          templates={templates}
+          onImport={importAll}
+          onClose={() => setShowMenu(false)}
+        />
+      )}
+    </>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
