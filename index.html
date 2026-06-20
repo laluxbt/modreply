@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ModReply - Discord Moderator Template Tool</title>
+    <title>ModReply - Macro Manager</title>
     <style>
         * {
             margin: 0;
@@ -12,70 +12,291 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            padding: 15px;
+            color: #fff;
         }
 
-        /* ── FLOATING BUBBLE (FAB) ── */
-        .fab {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #2E86AB 0%, #1B5E75 100%);
-            border-radius: 50%;
+        /* ── HEADER ── */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #5B7FFF 0%, #3B5FFF 100%);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .header-title h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header-title p {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 2px;
+        }
+
+        /* ── CATEGORIES ── */
+        .categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            color: #aaa;
+            border-radius: 20px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(46, 134, 171, 0.4);
-            transition: all 0.3s ease;
-            z-index: 999;
-            border: none;
+            font-size: 13px;
+            white-space: nowrap;
+            transition: all 0.3s;
+            font-weight: 500;
         }
 
-        .fab:hover {
-            width: 65px;
-            height: 65px;
-            box-shadow: 0 6px 20px rgba(46, 134, 171, 0.6);
-            transform: scale(1.05);
+        .category-btn.active {
+            background: linear-gradient(135deg, #5B7FFF 0%, #3B5FFF 100%);
+            color: white;
+            border-color: #5B7FFF;
         }
 
-        .fab:active {
-            transform: scale(0.95);
+        .category-btn:hover {
+            background: rgba(91, 127, 255, 0.2);
+            border-color: #5B7FFF;
         }
 
-        .fab-icon {
-            font-size: 28px;
+        .badge {
+            display: inline-block;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 5px;
+        }
+
+        /* ── MACRO CARDS ── */
+        .macros-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 80px;
+        }
+
+        .macro-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .macro-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .macro-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .macro-name {
+            font-size: 16px;
+            font-weight: 600;
             color: white;
         }
 
-        /* ── MODAL (Hidden by default) ── */
-        .modal-overlay {
+        .category-label {
+            font-size: 11px;
+            background: rgba(91, 127, 255, 0.3);
+            color: #5B7FFF;
+            padding: 3px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .macro-content {
+            font-size: 13px;
+            color: #bbb;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .macro-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-copy {
+            flex: 1;
+            background: rgba(91, 127, 255, 0.3);
+            color: #5B7FFF;
+            border: 1px solid #5B7FFF;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-copy:hover {
+            background: #5B7FFF;
+            color: white;
+        }
+
+        .btn-copy.copied {
+            background: #2ed573;
+            color: white;
+            border-color: #2ed573;
+        }
+
+        .btn-edit {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-edit:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-delete {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+            border: 1px solid #ff4757;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover {
+            background: #ff4757;
+            color: white;
+        }
+
+        /* ── SEARCH BAR ── */
+        .search-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 30, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 25px;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-input::placeholder {
+            color: #888;
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #5B7FFF;
+        }
+
+        /* ── FLOATING ADD BUTTON ── */
+        .btn-add {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #5B7FFF 0%, #3B5FFF 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(91, 127, 255, 0.4);
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .btn-add:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(91, 127, 255, 0.6);
+        }
+
+        .btn-add:active {
+            transform: scale(0.95);
+        }
+
+        /* ── MODAL ── */
+        .modal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
+            background: rgba(0, 0, 0, 0.7);
             align-items: flex-end;
-            z-index: 1000;
+            z-index: 200;
         }
 
-        .modal-overlay.active {
+        .modal.active {
             display: flex;
         }
 
-        .modal {
-            background: white;
+        .modal-content {
+            background: #1a1a2e;
             width: 100%;
-            max-width: 500px;
             border-radius: 20px 20px 0 0;
             padding: 20px;
-            max-height: 80vh;
+            max-height: 90vh;
             overflow-y: auto;
             animation: slideUp 0.3s ease;
         }
@@ -83,290 +304,377 @@
         @keyframes slideUp {
             from {
                 transform: translateY(100%);
-                opacity: 0;
             }
             to {
                 transform: translateY(0);
-                opacity: 1;
             }
         }
 
-        /* ── MODAL HEADER ── */
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
             padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .modal-title {
+        .modal-header h2 {
             font-size: 18px;
             font-weight: 600;
-            color: #1F2937;
         }
 
         .modal-close {
             background: none;
             border: none;
+            color: #aaa;
             font-size: 24px;
             cursor: pointer;
-            color: #6B7280;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 0.2s;
         }
 
-        .modal-close:hover {
-            color: #1F2937;
-        }
-
-        /* ── SEARCH BAR ── */
-        .search-bar {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #E5E7EB;
-            border-radius: 10px;
-            font-size: 14px;
+        .form-group {
             margin-bottom: 15px;
-            transition: border-color 0.2s;
         }
 
-        .search-bar:focus {
-            outline: none;
-            border-color: #2E86AB;
-            box-shadow: 0 0 0 3px rgba(46, 134, 171, 0.1);
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
-        /* ── MACRO LIST ── */
-        .macro-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .macro-item {
-            background: #F9FAFB;
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
             padding: 12px;
             border-radius: 8px;
-            border-left: 4px solid #2E86AB;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #5B7FFF;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-submit {
+            flex: 1;
+            background: linear-gradient(135deg, #5B7FFF 0%, #3B5FFF 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .macro-item:hover {
-            background: #F3F4F6;
-            transform: translateX(4px);
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(91, 127, 255, 0.4);
         }
 
-        .macro-name {
+        .btn-cancel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
             font-weight: 600;
-            color: #1F2937;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .macro-preview {
-            color: #6B7280;
-            font-size: 12px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* ── COPY BUTTON ── */
-        .copy-btn {
-            background: #2E86AB;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
             cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 8px;
-            width: 100%;
         }
 
-        .copy-btn:hover {
-            background: #1B5E75;
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
 
-        .copy-btn.copied {
-            background: #10B981;
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
         }
 
-        /* ── DEMO CONTENT ── */
-        .demo-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+        .empty-state p {
+            font-size: 14px;
         }
 
-        .demo-content h2 {
-            margin-bottom: 10px;
-            color: #1F2937;
-        }
+        /* ── RESPONSIVE ── */
+        @media (max-width: 480px) {
+            .search-container {
+                padding: 12px;
+            }
 
-        .demo-content p {
-            color: #6B7280;
-            line-height: 1.6;
+            .btn-add {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Demo Content -->
-    <div class="demo-content">
-        <h2>📌 ModReply</h2>
-        <p>Click the blue bubble in the bottom right to open your saved macros!</p>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">⚡</div>
+        <div class="header-title">
+            <h1>ModReply</h1>
+            <p>Save & search macros</p>
+        </div>
     </div>
 
-    <!-- Floating Bubble (FAB) -->
-    <button class="fab" id="fabBtn" title="Open ModReply">
-        <span class="fab-icon">💬</span>
-    </button>
+    <!-- Categories -->
+    <div class="categories" id="categories"></div>
 
-    <!-- Modal Overlay -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <!-- Modal Header -->
+    <!-- Macros Container -->
+    <div class="macros-container" id="macrosContainer">
+        <div class="empty-state">
+            <p>📭 No macros yet</p>
+        </div>
+    </div>
+
+    <!-- Search Bar (Fixed at bottom) -->
+    <div class="search-container">
+        <input 
+            type="text" 
+            class="search-input" 
+            id="searchInput" 
+            placeholder="🔍 Search or type /shortcode..."
+        >
+        <button class="btn-add" onclick="openAddModal()">+</button>
+    </div>
+
+    <!-- Modal for Add/Edit -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">ModReply Macros</h2>
-                <button class="modal-close" id="closeBtn">&times;</button>
+                <h2 id="modalTitle">Add Macro</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
 
-            <!-- Search Bar -->
-            <input 
-                type="text" 
-                class="search-bar" 
-                id="searchBar" 
-                placeholder="Search macros... (type to filter)"
-            >
+            <div class="form-group">
+                <label>Macro Name</label>
+                <input type="text" id="macroName" placeholder="e.g., Opening Message">
+            </div>
 
-            <!-- Macro List -->
-            <div class="macro-list" id="macroList">
-                <p style="color: #9CA3AF; text-align: center; padding: 20px;">
-                    No macros yet. Add some to get started!
-                </p>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="macroCategory">
+                    <option value="Greeting">Greeting</option>
+                    <option value="Closing">Closing</option>
+                    <option value="KYC">KYC</option>
+                    <option value="Support">Support</option>
+                    <option value="Rules">Rules</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Content</label>
+                <textarea id="macroContent" placeholder="Enter your macro text here..."></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-submit" onclick="saveMacro()">Save</button>
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        const fabBtn = document.getElementById('fabBtn');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const closeBtn = document.getElementById('closeBtn');
-        const searchBar = document.getElementById('searchBar');
-        const macroList = document.getElementById('macroList');
-
         const STORAGE_KEY = 'modreply_macros';
+        let macros = [];
+        let currentEditIndex = null;
+        let currentCategory = 'All';
 
-        // Load macros from localStorage
+        // Load macros
         function loadMacros() {
             const stored = localStorage.getItem(STORAGE_KEY);
-            return stored ? JSON.parse(stored) : [];
+            macros = stored ? JSON.parse(stored) : [];
+            renderCategories();
+            renderMacros();
         }
 
-        // Save macros to localStorage
-        function saveMacros(macros) {
+        // Save to localStorage
+        function saveMacrosToStorage() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(macros));
         }
 
-        let macros = loadMacros();
+        // Render categories
+        function renderCategories() {
+            const categories = ['All', ...new Set(macros.map(m => m.category))];
+            const categoriesDiv = document.getElementById('categories');
 
-        // Open modal when bubble is clicked
-        fabBtn.addEventListener('click', () => {
-            modalOverlay.classList.add('active');
-            searchBar.focus();
-        });
+            categoriesDiv.innerHTML = categories.map(cat => {
+                const count = macros.filter(m => m.category === cat).length;
+                const badge = count > 0 && cat !== 'All' ? `<span class="badge">${count}</span>` : '';
+                return `
+                    <button class="category-btn ${currentCategory === cat ? 'active' : ''}" 
+                            onclick="filterByCategory('${cat}')">
+                        ${cat}${badge}
+                    </button>
+                `;
+            }).join('');
+        }
 
-        // Close modal when X is clicked
-        closeBtn.addEventListener('click', () => {
-            modalOverlay.classList.remove('active');
-        });
-
-        // Close modal when overlay background is clicked
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                modalOverlay.classList.remove('active');
-            }
-        });
+        // Filter by category
+        function filterByCategory(category) {
+            currentCategory = category;
+            renderCategories();
+            renderMacros();
+        }
 
         // Render macros
-        function renderMacros(macrosToShow) {
-            if (macrosToShow.length === 0) {
-                macroList.innerHTML = '<p style="color: #9CA3AF; text-align: center; padding: 20px;">No macros found.</p>';
+        function renderMacros() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = macros.filter(macro => {
+                const matchesSearch = macro.name.toLowerCase().includes(searchTerm) || 
+                                     macro.content.toLowerCase().includes(searchTerm);
+                const matchesCategory = currentCategory === 'All' || macro.category === currentCategory;
+                return matchesSearch && matchesCategory;
+            });
+
+            const container = document.getElementById('macrosContainer');
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>📭 No macros found</p>
+                    </div>
+                `;
                 return;
             }
 
-            macroList.innerHTML = macrosToShow.map((macro, index) => `
-                <div class="macro-item">
-                    <div class="macro-name">${macro.name}</div>
-                    <div class="macro-preview">${macro.content}</div>
-                    <button class="copy-btn" data-index="${index}">📋 Copy</button>
+            container.innerHTML = filtered.map((macro, index) => `
+                <div class="macro-card">
+                    <div class="macro-card-header">
+                        <div class="macro-name">${macro.name}</div>
+                        <div class="category-label">${macro.category}</div>
+                    </div>
+                    <div class="macro-content">${macro.content}</div>
+                    <div class="macro-actions">
+                        <button class="btn-copy" onclick="copyMacro('${macro.name}', ${macros.indexOf(macro)})">📋 Copy</button>
+                        <button class="btn-edit" onclick="openEditModal(${macros.indexOf(macro)})">Edit</button>
+                        <button class="btn-delete" onclick="deleteMacro(${macros.indexOf(macro)})">Delete</button>
+                    </div>
                 </div>
             `).join('');
+        }
 
-            // Add copy button listeners
-            document.querySelectorAll('.copy-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const index = btn.getAttribute('data-index');
-                    const text = macrosToShow[index].content;
-                    
-                    navigator.clipboard.writeText(text).then(() => {
-                        btn.textContent = '✅ Copied!';
-                        btn.classList.add('copied');
-                        setTimeout(() => {
-                            btn.textContent = '📋 Copy';
-                            btn.classList.remove('copied');
-                        }, 2000);
-                    });
-                });
+        // Copy macro
+        function copyMacro(name, index) {
+            const text = macros[index].content;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                btn.textContent = '✅ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
             });
         }
 
-        // Search/filter macros
-        searchBar.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = macros.filter(macro => 
-                macro.name.toLowerCase().includes(query) || 
-                macro.content.toLowerCase().includes(query)
-            );
-            renderMacros(filtered);
-        });
-
-        // Add macro (simple prompt method)
-        function addMacro() {
-            const name = prompt('Macro name:');
-            if (!name) return;
-            const content = prompt('Macro content:');
-            if (!content) return;
-            macros.push({ name, content });
-            saveMacros(macros);
-            renderMacros(macros);
+        // Open add modal
+        function openAddModal() {
+            currentEditIndex = null;
+            document.getElementById('modalTitle').textContent = 'Add Macro';
+            document.getElementById('macroName').value = '';
+            document.getElementById('macroCategory').value = 'Greeting';
+            document.getElementById('macroContent').value = '';
+            document.getElementById('modal').classList.add('active');
         }
 
-        // Keyboard shortcut (Alt+M to open)
-        document.addEventListener('keydown', (e) => {
-            if (e.altKey && e.key === 'm') {
-                e.preventDefault();
-                modalOverlay.classList.add('active');
-                searchBar.focus();
+        // Open edit modal
+        function openEditModal(index) {
+            currentEditIndex = index;
+            const macro = macros[index];
+            document.getElementById('modalTitle').textContent = 'Edit Macro';
+            document.getElementById('macroName').value = macro.name;
+            document.getElementById('macroCategory').value = macro.category;
+            document.getElementById('macroContent').value = macro.content;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        // Save macro
+        function saveMacro() {
+            const name = document.getElementById('macroName').value.trim();
+            const category = document.getElementById('macroCategory').value;
+            const content = document.getElementById('macroContent').value.trim();
+
+            if (!name || !content) {
+                alert('Please fill all fields!');
+                return;
             }
+
+            if (currentEditIndex !== null) {
+                macros[currentEditIndex] = { name, category, content };
+            } else {
+                macros.push({ name, category, content });
+            }
+
+            saveMacrosToStorage();
+            renderCategories();
+            renderMacros();
+            closeModal();
+        }
+
+        // Delete macro
+        function deleteMacro(index) {
+            if (confirm('Delete this macro?')) {
+                macros.splice(index, 1);
+                saveMacrosToStorage();
+                renderCategories();
+                renderMacros();
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            currentEditIndex = null;
+        }
+
+        // Search
+        document.getElementById('searchInput').addEventListener('input', renderMacros);
+
+        // Close modal on overlay click
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
         });
 
-        // Initial render
-        renderMacros(macros);
-
-        // Expose addMacro to window for quick access
-        window.addMacro = addMacro;
+        // Initialize
+        loadMacros();
     </script>
 
 </body>
