@@ -1,709 +1,635 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="ModReply" />
-  <meta name="theme-color" content="#1E1F22" />
-  <title>ModReply</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg:        #1E1F22;
-      --surface:   #2B2D31;
-      --card:      #313338;
-      --border:    #3F4147;
-      --blurple:   #5865F2;
-      --blurple-d: #4752C4;
-      --green:     #23A55A;
-      --red:       #F23F43;
-      --text:      #DBDEE1;
-      --muted:     #949BA4;
-      --white:     #FFFFFF;
-      --radius:    12px;
-      --radius-sm: 8px;
-    }
-    html, body {
-      height: 100%; background: var(--bg); color: var(--text);
-      font-family: 'Inter', sans-serif; font-size: 15px;
-      -webkit-font-smoothing: antialiased; overscroll-behavior: none;
-    }
-    #root { height: 100%; display: flex; flex-direction: column; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModReply - Discord Moderator Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* HEADER */
-    .header {
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      padding: 14px 16px 12px; display: flex; align-items: center;
-      justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-shrink: 0;
-    }
-    .header-left { display: flex; align-items: center; gap: 10px; }
-    .logo {
-      width: 32px; height: 32px; background: var(--blurple); border-radius: 10px;
-      display: flex; align-items: center; justify-content: center; font-size: 17px;
-    }
-    .header h1 { font-size: 17px; font-weight: 700; color: var(--white); }
-    .header-actions { display: flex; gap: 8px; }
-    .icon-btn {
-      width: 36px; height: 36px; border-radius: var(--radius-sm);
-      background: var(--card); border: 1px solid var(--border); color: var(--muted);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 16px; transition: background 0.15s, color 0.15s;
-    }
-    .icon-btn:hover, .icon-btn:active { background: var(--blurple); color: var(--white); border-color: var(--blurple); }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #1F2937;
+            padding: 20px;
+        }
 
-    /* CATEGORIES */
-    .cat-scroll {
-      display: flex; gap: 8px; padding: 12px 16px;
-      overflow-x: auto; flex-shrink: 0; scrollbar-width: none;
-    }
-    .cat-scroll::-webkit-scrollbar { display: none; }
-    .cat-chip {
-      padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
-      white-space: nowrap; cursor: pointer; border: 1.5px solid var(--border);
-      background: var(--surface); color: var(--muted); transition: all 0.15s; flex-shrink: 0;
-    }
-    .cat-chip.active { background: var(--blurple); border-color: var(--blurple); color: var(--white); }
+        /* ── HEADER WITH LOGO ── */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
 
-    /* MAIN */
-    .main { flex: 1; overflow-y: auto; padding: 0 16px 16px; -webkit-overflow-scrolling: touch; }
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #2E86AB 0%, #1B5E75 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 24px;
+        }
 
-    /* TEMPLATE CARDS */
-    .template-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 14px; margin-bottom: 10px; cursor: pointer;
-      transition: border-color 0.15s, transform 0.1s; position: relative; overflow: hidden;
-    }
-    .template-card:active { transform: scale(0.985); }
-    .template-card.copied { border-color: var(--green); }
-    .template-card.copied::after {
-      content: '✓ Copied!'; position: absolute; top: 10px; right: 12px;
-      background: var(--green); color: white; font-size: 12px; font-weight: 700;
-      padding: 3px 10px; border-radius: 20px; animation: fadeOut 1.4s forwards;
-    }
-    @keyframes fadeOut { 0%,70% { opacity:1; } 100% { opacity:0; } }
-    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-    .card-title { font-size: 14px; font-weight: 700; color: var(--white); line-height: 1.3; }
-    .shortcode {
-      font-size: 11px; font-weight: 700; color: var(--blurple);
-      background: rgba(88,101,242,0.15); border: 1px solid rgba(88,101,242,0.3);
-      padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-    }
-    .card-body { font-size: 13.5px; color: var(--muted); line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-    .card-body .var-tag { color: #E8912D; font-weight: 600; }
-    .card-footer {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
-    }
-    .cat-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .card-actions { display: flex; gap: 6px; }
-    .small-btn { padding: 4px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; transition: background 0.15s; }
-    .btn-edit { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
-    .btn-edit:hover { color: var(--white); }
-    .btn-delete { background: rgba(242,63,67,0.1); color: var(--red); border: 1px solid rgba(242,63,67,0.25); }
-    .btn-delete:hover { background: var(--red); color: white; }
+        .header-title {
+            flex: 1;
+        }
 
-    /* EMPTY */
-    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
-    .empty-icon { font-size: 48px; margin-bottom: 16px; }
-    .empty h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
-    .empty p { font-size: 13px; line-height: 1.6; }
+        .header-title h1 {
+            font-size: 24px;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
 
-    /* SEARCH BAR */
-    .search-bar {
-      background: var(--surface); border-top: 1px solid var(--border);
-      padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom));
-      flex-shrink: 0; display: flex; gap: 10px; align-items: center;
-    }
-    .search-input-wrap { flex: 1; position: relative; }
-    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 15px; pointer-events: none; }
-    .search-input {
-      width: 100%; background: var(--card); border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm); color: var(--text); font-family: 'Inter', sans-serif;
-      font-size: 14px; padding: 10px 12px 10px 36px; outline: none; transition: border-color 0.15s;
-    }
-    .search-input:focus { border-color: var(--blurple); }
-    .search-input::placeholder { color: var(--muted); }
-    .add-btn {
-      width: 42px; height: 42px; border-radius: var(--radius-sm); background: var(--blurple);
-      border: none; color: white; font-size: 22px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: background 0.15s; font-weight: 300;
-    }
-    .add-btn:hover { background: var(--blurple-d); }
+        .header-title p {
+            font-size: 13px;
+            color: #6B7280;
+        }
 
-    /* ── FLOATING WIDGET ── */
-    .fab {
-      position: fixed;
-      width: 54px; height: 54px;
-      border-radius: 50%;
-      background: var(--blurple);
-      box-shadow: 0 4px 20px rgba(88,101,242,0.5);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-      cursor: grab;
-      z-index: 9999;
-      user-select: none;
-      touch-action: none;
-      transition: box-shadow 0.2s, transform 0.15s;
-      border: 2px solid rgba(255,255,255,0.15);
-    }
-    .fab:active { cursor: grabbing; transform: scale(1.08); box-shadow: 0 6px 28px rgba(88,101,242,0.7); }
-    .fab.open { background: var(--blurple-d); }
+        /* ── CONTAINER ── */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
 
-    /* WIDGET DRAWER */
-    .widget-drawer {
-      position: fixed;
-      z-index: 9998;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      width: 300px;
-      max-height: 420px;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-      animation: popIn 0.18s ease;
-      overflow: hidden;
-    }
-    @keyframes popIn { from { opacity:0; transform: scale(0.92); } to { opacity:1; transform: scale(1); } }
-    .widget-search-wrap { padding: 10px; border-bottom: 1px solid var(--border); position: relative; flex-shrink: 0; }
-    .widget-search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
-    .widget-search {
-      width: 100%; background: var(--card); border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm); color: var(--text); font-family: 'Inter', sans-serif;
-      font-size: 13px; padding: 8px 10px 8px 32px; outline: none; transition: border-color 0.15s;
-    }
-    .widget-search:focus { border-color: var(--blurple); }
-    .widget-search::placeholder { color: var(--muted); }
-    .widget-list { overflow-y: auto; flex: 1; padding: 6px; }
-    .widget-item {
-      padding: 10px 12px; border-radius: 8px; cursor: pointer;
-      transition: background 0.12s; margin-bottom: 2px;
-    }
-    .widget-item:hover, .widget-item:active { background: var(--card); }
-    .widget-item-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
-    .widget-item-title { font-size: 13px; font-weight: 600; color: var(--white); }
-    .widget-item-code { font-size: 10px; font-weight: 700; color: var(--blurple); background: rgba(88,101,242,0.15); padding: 1px 7px; border-radius: 10px; }
-    .widget-item-preview { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .widget-copied {
-      text-align: center; padding: 6px; font-size: 12px; font-weight: 700;
-      color: var(--green); border-top: 1px solid var(--border); flex-shrink: 0;
-      animation: fadeOut 1.2s forwards;
-    }
-    .widget-empty { text-align: center; padding: 30px 10px; color: var(--muted); font-size: 13px; }
+        /* ── SEARCH BAR ── */
+        .search-section {
+            margin-bottom: 25px;
+        }
 
-    /* USERNAME POPUP */
-    .uname-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.65);
-      z-index: 10000; display: flex; align-items: center; justify-content: center;
-      padding: 20px; animation: fadeIn 0.15s ease;
-    }
-    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-    .uname-box {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 16px; padding: 24px 20px; width: 100%; max-width: 320px;
-      animation: popIn 0.18s ease;
-    }
-    .uname-box h3 { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
-    .uname-box p { font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
-    .uname-preview {
-      background: var(--card); border: 1px solid var(--border); border-radius: 8px;
-      padding: 10px 12px; font-size: 13px; color: var(--text); margin-bottom: 16px;
-      line-height: 1.5; white-space: pre-wrap; word-break: break-word; min-height: 48px;
-    }
-    .uname-preview .var-tag { color: #E8912D; font-weight: 600; }
-    .uname-input {
-      width: 100%; background: var(--card); border: 1.5px solid var(--blurple);
-      border-radius: var(--radius-sm); color: var(--white); font-family: 'Inter', sans-serif;
-      font-size: 15px; padding: 11px 14px; outline: none; margin-bottom: 16px;
-    }
-    .uname-input::placeholder { color: var(--muted); }
-    .uname-actions { display: flex; gap: 10px; }
-    .btn-cancel { flex:1; padding:11px; border-radius:var(--radius-sm); background:var(--card); border:1.5px solid var(--border); color:var(--muted); font-family:'Inter',sans-serif; font-size:14px; font-weight:600; cursor:pointer; }
-    .btn-copy-now { flex:2; padding:11px; border-radius:var(--radius-sm); background:var(--blurple); border:none; color:white; font-family:'Inter',sans-serif; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.15s; }
-    .btn-copy-now:hover { background: var(--blurple-d); }
+        .search-bar {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
 
-    /* TEMPLATE MODAL */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-      z-index: 200; display: flex; align-items: flex-end; animation: fadeIn 0.15s ease;
-    }
-    .modal {
-      background: var(--surface); border-radius: 20px 20px 0 0;
-      border: 1px solid var(--border); border-bottom: none; width: 100%;
-      padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
-      animation: slideUp 0.2s ease; max-height: 90vh; overflow-y: auto;
-    }
-    @keyframes slideUp { from { transform:translateY(30px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-    .modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin: 0 auto 20px; }
-    .modal h2 { font-size:18px; font-weight:700; color:var(--white); margin-bottom:20px; }
-    .field { margin-bottom: 16px; }
-    .field label { display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
-    .field input, .field textarea, .field select {
-      width:100%; background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius-sm);
-      color:var(--text); font-family:'Inter',sans-serif; font-size:14px; padding:10px 12px; outline:none; transition:border-color 0.15s; resize:none;
-    }
-    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--blurple); }
-    .field select option { background: var(--card); }
-    .field-hint { font-size:11px; color:var(--muted); margin-top:5px; }
-    .modal-actions { display:flex; gap:10px; margin-top:20px; }
-    .btn-save { flex:2; padding:12px; border-radius:var(--radius-sm); background:var(--blurple); border:none; color:white; font-family:'Inter',sans-serif; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.15s; }
-    .btn-save:hover { background: var(--blurple-d); }
-    .var-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-    .var-chip { padding:4px 10px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(232,145,45,0.15); color:#E8912D; border:1px solid rgba(232,145,45,0.3); cursor:pointer; }
-    .var-chip:hover { background: rgba(232,145,45,0.3); }
+        .search-bar:focus {
+            outline: none;
+            border-color: #2E86AB;
+            box-shadow: 0 0 0 3px rgba(46, 134, 171, 0.1);
+        }
 
-    /* MENU */
-    .menu-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.5); display:flex; align-items:flex-end; animation:fadeIn 0.15s ease; }
-    .menu { background:var(--surface); border-radius:20px 20px 0 0; border:1px solid var(--border); border-bottom:none; width:100%; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); animation:slideUp 0.2s ease; }
-    .menu h3 { font-size:13px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:16px; }
-    .menu-item { display:flex; align-items:center; gap:14px; padding:14px; border-radius:var(--radius-sm); cursor:pointer; transition:background 0.15s; margin-bottom:6px; }
-    .menu-item:hover, .menu-item:active { background: var(--card); }
-    .menu-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-    .menu-icon.blue { background: rgba(88,101,242,0.2); }
-    .menu-icon.green { background: rgba(35,165,90,0.2); }
-    .menu-icon.red { background: rgba(242,63,67,0.15); }
-    .menu-item-text strong { display:block; font-size:15px; font-weight:600; color:var(--white); margin-bottom:2px; }
-    .menu-item-text span { font-size:12px; color:var(--muted); }
-    .count-badge { display:inline-flex; align-items:center; justify-content:center; background:var(--blurple); color:white; font-size:11px; font-weight:700; min-width:20px; height:20px; border-radius:10px; padding:0 6px; margin-left:6px; }
-    input[type="file"] { display: none; }
-  </style>
+        /* ── CATEGORIES ── */
+        .categories {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: #F3F4F6;
+            color: #6B7280;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .category-btn.active {
+            background: #2E86AB;
+            color: white;
+        }
+
+        .category-btn:hover {
+            background: #E5E7EB;
+        }
+
+        .category-btn.active:hover {
+            background: #1B5E75;
+        }
+
+        /* ── MACRO LIST ── */
+        .macro-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .macro-item {
+            background: #F9FAFB;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #2E86AB;
+            transition: all 0.2s;
+        }
+
+        .macro-item:hover {
+            background: #F3F4F6;
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .macro-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .macro-name {
+            font-weight: 600;
+            color: #1F2937;
+            font-size: 15px;
+        }
+
+        .macro-category {
+            font-size: 11px;
+            background: #E5E7EB;
+            color: #6B7280;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .macro-preview {
+            color: #6B7280;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 10px;
+        }
+
+        .macro-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .copy-btn {
+            flex: 1;
+            background: #2E86AB;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .copy-btn:hover {
+            background: #1B5E75;
+        }
+
+        .copy-btn.copied {
+            background: #10B981;
+        }
+
+        .edit-btn {
+            background: #F3F4F6;
+            color: #6B7280;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .edit-btn:hover {
+            background: #E5E7EB;
+            color: #1F2937;
+        }
+
+        .delete-btn {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #FCA5A5;
+        }
+
+        /* ── ADD MACRO BUTTON ── */
+        .add-macro-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #F3F4F6;
+        }
+
+        .add-btn {
+            width: 100%;
+            background: #2E86AB;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-btn:hover {
+            background: #1B5E75;
+        }
+
+        /* ── MODAL ── */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1F2937;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1F2937;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2E86AB;
+            box-shadow: 0 0 0 3px rgba(46, 134, 171, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-save {
+            background: #2E86AB;
+            color: white;
+        }
+
+        .modal-save:hover {
+            background: #1B5E75;
+        }
+
+        .modal-cancel {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        .modal-cancel:hover {
+            background: #E5E7EB;
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9CA3AF;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 480px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .macro-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-<div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
 
-const DEFAULT_TEMPLATES = [
-  { id:'t1', title:'Opening Message',  shortcode:'/open',     category:'Greeting',   body:'Hi {username}! 👋 How can I assist you today?' },
-  { id:'t2', title:'Closing Message',  shortcode:'/close',    category:'Closing',    body:'Enjoy! 🎉 Feel free to reach out anytime if you need further help.' },
-  { id:'t3', title:'KYC Reminder',     shortcode:'/kyc',      category:'KYC',        body:'Hi {username}, please complete your KYC verification to continue. You can do this via the link in #verification. Let us know if you run into any issues!' },
-  { id:'t4', title:'KYC Approved',     shortcode:'/kyc-ok',   category:'KYC',        body:'Great news {username}! ✅ Your KYC has been approved. You now have full access. Welcome aboard!' },
-  { id:'t5', title:'Rule Reminder',    shortcode:'/rules',    category:'Moderation', body:'Hey {username}, just a friendly reminder to keep discussion in line with our community rules. Please check #rules for reference. Thanks for understanding! 🙏' },
-  { id:'t6', title:'Ticket Acknowledge',shortcode:'/ack',     category:'Support',    body:'Hi {username}, thanks for reaching out! I have received your message and will look into this shortly. Please bear with us.' },
-  { id:'t7', title:'Escalation Notice',shortcode:'/escalate', category:'Support',    body:'Hi {username}, I am escalating your issue to our senior team for further review. You will hear back within 24 hours. Apologies for the inconvenience.' },
-  { id:'t8', title:'Warning Notice',   shortcode:'/warn',     category:'Moderation', body:'Hi {username}, this is an official warning regarding your recent behaviour in the server. Please review our community guidelines. Repeated violations may result in further action.' },
-];
-
-const CATEGORIES = ['All','Greeting','Closing','KYC','Support','Moderation'];
-const VARIABLES  = ['{username}','{channel}','{date}','{time}'];
-const HAS_USERNAME = (body) => body.includes('{username}');
-
-function highlightVars(text) {
-  return text.split(/(\{[^}]+\})/g).map((p,i) =>
-    /^\{.+\}$/.test(p) ? <span key={i} className="var-tag">{p}</span> : p
-  );
-}
-
-function fillTemplate(body, username) {
-  return body
-    .replace(/\{username\}/g, username || '{username}')
-    .replace(/\{date\}/g, new Date().toLocaleDateString())
-    .replace(/\{time\}/g, new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
-}
-
-function copyText(text, onDone) {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(onDone);
-  } else {
-    const el = document.createElement('textarea');
-    el.value = text; document.body.appendChild(el); el.select();
-    document.execCommand('copy'); document.body.removeChild(el);
-    onDone();
-  }
-}
-
-function useTemplates() {
-  const [templates, setTemplates] = useState(() => {
-    try { const s = localStorage.getItem('modreply_templates'); return s ? JSON.parse(s) : DEFAULT_TEMPLATES; }
-    catch { return DEFAULT_TEMPLATES; }
-  });
-  useEffect(() => { localStorage.setItem('modreply_templates', JSON.stringify(templates)); }, [templates]);
-  const add       = t  => setTemplates(p => [{ ...t, id:'t'+Date.now() }, ...p]);
-  const update    = (id,t) => setTemplates(p => p.map(x => x.id===id ? {...x,...t} : x));
-  const remove    = id => setTemplates(p => p.filter(x => x.id!==id));
-  const importAll = list => setTemplates(list);
-  return { templates, add, update, remove, importAll };
-}
-
-/* ── USERNAME POPUP ── */
-function UsernamePopup({ template, onCopy, onClose }) {
-  const [name, setName] = useState('');
-  const inputRef = useRef(null);
-  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 80); }, []);
-
-  const preview = fillTemplate(template.body, name);
-
-  const handleCopy = () => {
-    copyText(fillTemplate(template.body, name || '{username}'), onCopy);
-  };
-
-  return (
-    <div className="uname-overlay" onClick={e => e.target===e.currentTarget && onClose()}>
-      <div className="uname-box">
-        <h3>Who are you replying to?</h3>
-        <p>Type the username so it fills in before copying.</p>
-        <div className="uname-preview">{highlightVars(preview)}</div>
-        <input
-          ref={inputRef}
-          className="uname-input"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          onKeyDown={e => e.key==='Enter' && handleCopy()}
-          placeholder="e.g. JohnDoe"
-        />
-        <div className="uname-actions">
-          <button className="btn-cancel" onClick={onClose}>Cancel</button>
-          <button className="btn-copy-now" onClick={handleCopy}>Copy Message ⚡</button>
+    <!-- Header with Logo -->
+    <div class="header">
+        <div class="logo">⚡</div>
+        <div class="header-title">
+            <h1>ModReply</h1>
+            <p>Discord Moderator Macro Tool</p>
         </div>
-      </div>
     </div>
-  );
-}
 
-/* ── FLOATING WIDGET ── */
-function FloatingWidget({ templates }) {
-  const [pos, setPos]         = useState({ x: window.innerWidth - 70, y: window.innerHeight - 160 });
-  const [open, setOpen]       = useState(false);
-  const [query, setQuery]     = useState('');
-  const [widgetCopied, setWidgetCopied] = useState('');
-  const [unameFor, setUnameFor] = useState(null);
-  const dragging   = useRef(false);
-  const startTouch = useRef({});
-  const startPos   = useRef({});
-  const fabRef     = useRef(null);
-  const moved      = useRef(false);
-
-  const filtered = templates.filter(t => {
-    const q = query.toLowerCase();
-    return !q || t.title.toLowerCase().includes(q) || t.shortcode.toLowerCase().includes(q) || t.body.toLowerCase().includes(q);
-  });
-
-  /* drag logic */
-  const onTouchStart = (e) => {
-    dragging.current = true; moved.current = false;
-    startTouch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    startPos.current   = { ...pos };
-  };
-  const onTouchMove = (e) => {
-    if (!dragging.current) return;
-    const dx = e.touches[0].clientX - startTouch.current.x;
-    const dy = e.touches[0].clientY - startTouch.current.y;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved.current = true;
-    const nx = Math.max(0, Math.min(window.innerWidth  - 54, startPos.current.x + dx));
-    const ny = Math.max(0, Math.min(window.innerHeight - 54, startPos.current.y + dy));
-    setPos({ x: nx, y: ny });
-    if (open) setOpen(false);
-  };
-  const onTouchEnd = () => {
-    dragging.current = false;
-    if (!moved.current) setOpen(o => !o);
-  };
-
-  /* drawer position: appear above FAB, clamp to screen */
-  const drawerWidth = 300;
-  const drawerHeight = 420;
-  let dx = pos.x + 27 - drawerWidth / 2;
-  let dy = pos.y - drawerHeight - 12;
-  dx = Math.max(8, Math.min(window.innerWidth - drawerWidth - 8, dx));
-  if (dy < 8) dy = pos.y + 62;
-
-  const handleWidgetTap = (t) => {
-    if (HAS_USERNAME(t.body)) {
-      setUnameFor(t);
-    } else {
-      const text = fillTemplate(t.body, '');
-      copyText(text, () => {
-        setWidgetCopied(t.title);
-        setTimeout(() => setWidgetCopied(''), 1500);
-      });
-    }
-  };
-
-  const handleUnameCopy = () => {
-    setUnameFor(null);
-    setWidgetCopied(unameFor?.title || '');
-    setTimeout(() => setWidgetCopied(''), 1500);
-  };
-
-  return (
-    <>
-      {/* FAB */}
-      <div
-        ref={fabRef}
-        className={`fab${open?' open':''}`}
-        style={{ left: pos.x, top: pos.y }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onClick={() => { if(!moved.current) setOpen(o=>!o); }}
-      >
-        {open ? '✕' : '⚡'}
-      </div>
-
-      {/* DRAWER */}
-      {open && (
-        <div className="widget-drawer" style={{ left: dx, top: dy }}>
-          <div className="widget-search-wrap">
-            <span className="widget-search-icon">🔍</span>
-            <input
-              className="widget-search"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="Search templates…"
-              autoFocus
-            />
-          </div>
-          <div className="widget-list">
-            {filtered.length === 0
-              ? <div className="widget-empty">No templates found</div>
-              : filtered.map(t => (
-                <div key={t.id} className="widget-item" onClick={() => handleWidgetTap(t)}>
-                  <div className="widget-item-top">
-                    <span className="widget-item-title">{t.title}</span>
-                    <span className="widget-item-code">{t.shortcode}</span>
-                  </div>
-                  <div className="widget-item-preview">{t.body.replace(/\{[^}]+\}/g, m => m)}</div>
-                </div>
-              ))
-            }
-          </div>
-          {widgetCopied && <div className="widget-copied">✓ Copied — {widgetCopied}</div>}
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Search Bar -->
+        <div class="search-section">
+            <input 
+                type="text" 
+                id="searchBar" 
+                class="search-bar" 
+                placeholder="🔍 Search macros by name or content..."
+            >
         </div>
-      )}
 
-      {/* USERNAME POPUP from widget */}
-      {unameFor && (
-        <UsernamePopup
-          template={unameFor}
-          onCopy={handleUnameCopy}
-          onClose={() => setUnameFor(null)}
-        />
-      )}
-    </>
-  );
-}
+        <!-- Categories -->
+        <div class="categories" id="categories"></div>
 
-/* ── TEMPLATE MODAL ── */
-function TemplateModal({ initial, onSave, onClose }) {
-  const isEdit = !!initial;
-  const textareaRef = useRef(null);
-  const [form, setForm] = useState(initial || { title:'', shortcode:'', category:'Support', body:'' });
-  const set = (k,v) => setForm(f => ({...f,[k]:v}));
-
-  const insertVar = (v) => {
-    const el = textareaRef.current; if (!el) return;
-    const s=el.selectionStart, e=el.selectionEnd;
-    const nb = form.body.slice(0,s)+v+form.body.slice(e);
-    set('body',nb);
-    setTimeout(()=>{ el.selectionStart=el.selectionEnd=s+v.length; el.focus(); },0);
-  };
-
-  return (
-    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal">
-        <div className="modal-handle"/>
-        <h2>{isEdit?'Edit Template':'New Template'}</h2>
-        <div className="field">
-          <label>Title</label>
-          <input value={form.title} onChange={e=>set('title',e.target.value)} placeholder="e.g. Opening Message"/>
-        </div>
-        <div className="field">
-          <label>Shortcode</label>
-          <input value={form.shortcode} onChange={e=>set('shortcode',e.target.value)} placeholder="e.g. /open"/>
-          <div className="field-hint">Used for quick search. Start with /</div>
-        </div>
-        <div className="field">
-          <label>Category</label>
-          <select value={form.category} onChange={e=>set('category',e.target.value)}>
-            {['Greeting','Closing','KYC','Support','Moderation','Other'].map(c=><option key={c}>{c}</option>)}
-          </select>
-        </div>
-        <div className="field">
-          <label>Message</label>
-          <textarea ref={textareaRef} rows={5} value={form.body} onChange={e=>set('body',e.target.value)} placeholder="Type your reply here..."/>
-          <div className="field-hint">Tap a variable to insert at cursor:</div>
-          <div className="var-chips">
-            {VARIABLES.map(v=><span key={v} className="var-chip" onClick={()=>insertVar(v)}>{v}</span>)}
-          </div>
-        </div>
-        <div className="modal-actions">
-          <button className="btn-cancel" onClick={onClose}>Cancel</button>
-          <button className="btn-save" onClick={()=>{ if(!form.title.trim()||!form.body.trim()) return; onSave(form); onClose(); }}>{isEdit?'Save Changes':'Add Template'}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── EXPORT MENU ── */
-function ExportMenu({ templates, onImport, onClose }) {
-  const fileRef = useRef(null);
-  const handleExport = () => {
-    const blob = new Blob([JSON.stringify(templates,null,2)],{type:'application/json'});
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a'); a.href=url; a.download='modreply-templates.json'; a.click();
-    URL.revokeObjectURL(url); onClose();
-  };
-  const handleImport = (e) => {
-    const file = e.target.files[0]; if(!file) return;
-    const r = new FileReader();
-    r.onload = ev => { try { const p=JSON.parse(ev.target.result); if(Array.isArray(p)){onImport(p);onClose();}else alert('Invalid file.'); } catch{alert('Could not read file.');} };
-    r.readAsText(file);
-  };
-  return (
-    <div className="menu-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="menu">
-        <div className="modal-handle"/>
-        <h3>Template Library</h3>
-        <div className="menu-item" onClick={handleExport}>
-          <div className="menu-icon blue">📤</div>
-          <div className="menu-item-text"><strong>Export Templates</strong><span>Save as .json — share with other mods</span></div>
-        </div>
-        <div className="menu-item" onClick={()=>fileRef.current.click()}>
-          <div className="menu-icon green">📥</div>
-          <div className="menu-item-text"><strong>Import Templates</strong><span>Load from a .json file</span></div>
-        </div>
-        <div className="menu-item" onClick={()=>{ if(confirm('Reset to defaults?')){onImport(DEFAULT_TEMPLATES);onClose();} }}>
-          <div className="menu-icon red">🔄</div>
-          <div className="menu-item-text"><strong>Reset to Defaults</strong><span>Restore original templates</span></div>
-        </div>
-        <input type="file" ref={fileRef} accept=".json" onChange={handleImport}/>
-      </div>
-    </div>
-  );
-}
-
-/* ── TEMPLATE CARD ── */
-function TemplateCard({ t, onEdit, onDelete, onTap }) {
-  const [copied, setCopied] = useState(false);
-  const handleTap = () => { onTap(t, () => { setCopied(true); setTimeout(()=>setCopied(false),1500); }); };
-  return (
-    <div className={`template-card${copied?' copied':''}`} onClick={handleTap}>
-      <div className="card-top">
-        <div className="card-title">{t.title}</div>
-        <div className="shortcode">{t.shortcode}</div>
-      </div>
-      <div className="card-body">{highlightVars(t.body)}</div>
-      <div className="card-footer">
-        <span className="cat-label">{t.category}</span>
-        <div className="card-actions" onClick={e=>e.stopPropagation()}>
-          <button className="small-btn btn-edit" onClick={()=>onEdit(t)}>Edit</button>
-          <button className="small-btn btn-delete" onClick={()=>onDelete(t.id)}>Delete</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── APP ── */
-function App() {
-  const { templates, add, update, remove, importAll } = useTemplates();
-  const [query,      setQuery]      = useState('');
-  const [cat,        setCat]        = useState('All');
-  const [showModal,  setShowModal]  = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
-  const [showMenu,   setShowMenu]   = useState(false);
-  const [unameFor,   setUnameFor]   = useState(null); // { template, onDone }
-
-  const filtered = templates.filter(t => {
-    const matchCat = cat==='All' || t.category===cat;
-    const q = query.toLowerCase();
-    const matchQ = !q || t.title.toLowerCase().includes(q) || t.shortcode.toLowerCase().includes(q) || t.body.toLowerCase().includes(q);
-    return matchCat && matchQ;
-  });
-
-  const handleCardTap = (t, onCopied) => {
-    if (HAS_USERNAME(t.body)) {
-      setUnameFor({ template: t, onDone: onCopied });
-    } else {
-      copyText(fillTemplate(t.body,''), onCopied);
-    }
-  };
-
-  const catCounts = CATEGORIES.reduce((acc,c) => {
-    acc[c] = c==='All' ? templates.length : templates.filter(t=>t.category===c).length;
-    return acc;
-  },{});
-
-  return (
-    <>
-      <div className="header">
-        <div className="header-left">
-          <div className="logo">⚡</div>
-          <h1>ModReply</h1>
-        </div>
-        <div className="header-actions">
-          <div className="icon-btn" onClick={()=>setShowMenu(true)}>⋯</div>
-        </div>
-      </div>
-
-      <div className="cat-scroll">
-        {CATEGORIES.map(c=>(
-          <div key={c} className={`cat-chip${cat===c?' active':''}`} onClick={()=>setCat(c)}>
-            {c}
-            {catCounts[c]>0 && cat!==c && <span className="count-badge">{catCounts[c]}</span>}
-          </div>
-        ))}
-      </div>
-
-      <div className="main">
-        {filtered.length===0
-          ? <div className="empty">
-              <div className="empty-icon">{query?'🔍':'📋'}</div>
-              <h3>{query?'No results found':'No templates yet'}</h3>
-              <p>{query?'Try a different keyword or shortcode.':'Tap + to add your first template.'}</p>
+        <!-- Macro List -->
+        <div class="macro-list" id="macroList">
+            <div class="empty-state">
+                <p>📭 No macros saved yet</p>
+                <p>Click "Add Macro" below to get started!</p>
             </div>
-          : filtered.map(t=>(
-              <TemplateCard key={t.id} t={t}
-                onEdit={t=>{ setEditTarget(t); setShowModal(true); }}
-                onDelete={remove}
-                onTap={handleCardTap}
-              />
-            ))
-        }
-      </div>
-
-      <div className="search-bar">
-        <div className="search-input-wrap">
-          <span className="search-icon">🔍</span>
-          <input className="search-input" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search or type /shortcode…"/>
         </div>
-        <button className="add-btn" onClick={()=>{ setEditTarget(null); setShowModal(true); }}>+</button>
-      </div>
 
-      {/* FLOATING WIDGET */}
-      <FloatingWidget templates={templates}/>
+        <!-- Add Macro Section -->
+        <div class="add-macro-section">
+            <button class="add-btn" onclick="openAddModal()">+ Add Macro</button>
+        </div>
+    </div>
 
-      {/* MODALS */}
-      {showModal && (
-        <TemplateModal
-          initial={editTarget}
-          onSave={form=>{ if(editTarget) update(editTarget.id,form); else add(form); }}
-          onClose={()=>{ setShowModal(false); setEditTarget(null); }}
-        />
-      )}
-      {showMenu && <ExportMenu templates={templates} onImport={importAll} onClose={()=>setShowMenu(false)}/>}
+    <!-- Modal for Add/Edit -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">Add New Macro</div>
+            
+            <div class="form-group">
+                <label>Macro Name</label>
+                <input type="text" id="macroName" placeholder="e.g., Welcome Message">
+            </div>
 
-      {/* USERNAME POPUP from main app */}
-      {unameFor && (
-        <UsernamePopup
-          template={unameFor.template}
-          onCopy={() => { unameFor.onDone?.(); setUnameFor(null); }}
-          onClose={()=>setUnameFor(null)}
-        />
-      )}
-    </>
-  );
-}
+            <div class="form-group">
+                <label>Category</label>
+                <select id="macroCategory">
+                    <option value="General">General</option>
+                    <option value="Greeting">Greeting</option>
+                    <option value="KYC">KYC</option>
+                    <option value="Support">Support</option>
+                    <option value="Rules">Rules</option>
+                </select>
+            </div>
 
-ReactDOM.render(<App />, document.getElementById('root'));
-</script>
+            <div class="form-group">
+                <label>Content</label>
+                <textarea id="macroContent" placeholder="Enter your macro text here..."></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="modal-save" onclick="saveMacro()">Save</button>
+                <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "modreply_macros";
+        let macros = [];
+        let currentEditIndex = null;
+        let currentCategory = "All";
+
+        // Load macros on startup
+        function loadMacros() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            macros = stored ? JSON.parse(stored) : [];
+            renderMacros();
+            renderCategories();
+        }
+
+        // Save macros to localStorage
+        function saveMacrosToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(macros));
+        }
+
+        // Render categories
+        function renderCategories() {
+            const categories = ["All", ...new Set(macros.map(m => m.category))];
+            const categoriesDiv = document.getElementById("categories");
+            
+            categoriesDiv.innerHTML = categories.map(cat => `
+                <button class="category-btn ${currentCategory === cat ? "active" : ""}" 
+                        onclick="filterByCategory('${cat}')">
+                    ${cat}
+                </button>
+            `).join("");
+        }
+
+        // Filter by category
+        function filterByCategory(category) {
+            currentCategory = category;
+            renderCategories();
+            renderMacros();
+        }
+
+        // Render macros
+        function renderMacros() {
+            const searchTerm = document.getElementById("searchBar").value.toLowerCase();
+            
+            let filtered = macros.filter(macro => {
+                const matchesSearch = macro.name.toLowerCase().includes(searchTerm) || 
+                                     macro.content.toLowerCase().includes(searchTerm);
+                const matchesCategory = currentCategory === "All" || macro.category === currentCategory;
+                return matchesSearch && matchesCategory;
+            });
+
+            const macroList = document.getElementById("macroList");
+
+            if (filtered.length === 0) {
+                macroList.innerHTML = `
+                    <div class="empty-state">
+                        <p>📭 No macros found</p>
+                        <p>Try a different search or add a new macro</p>
+                    </div>
+                `;
+                return;
+            }
+
+            macroList.innerHTML = filtered.map((macro, index) => `
+                <div class="macro-item">
+                    <div class="macro-header">
+                        <div class="macro-name">${macro.name}</div>
+                        <div class="macro-category">${macro.category}</div>
+                    </div>
+                    <div class="macro-preview">${macro.content}</div>
+                    <div class="macro-actions">
+                        <button class="copy-btn" onclick="copyMacro('${macro.name}', ${macros.indexOf(macro)})">📋 Copy</button>
+                        <button class="edit-btn" onclick="openEditModal(${macros.indexOf(macro)})">✏️ Edit</button>
+                        <button class="delete-btn" onclick="deleteMacro(${macros.indexOf(macro)})">🗑️</button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        // Copy macro
+        function copyMacro(name, index) {
+            const text = macros[index].content;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                btn.textContent = "✅ Copied!";
+                btn.classList.add("copied");
+                setTimeout(() => {
+                    btn.textContent = "📋 Copy";
+                    btn.classList.remove("copied");
+                }, 2000);
+            });
+        }
+
+        // Open add modal
+        function openAddModal() {
+            currentEditIndex = null;
+            document.getElementById("modalTitle").textContent = "Add New Macro";
+            document.getElementById("macroName").value = "";
+            document.getElementById("macroCategory").value = "General";
+            document.getElementById("macroContent").value = "";
+            document.getElementById("modal").classList.add("active");
+        }
+
+        // Open edit modal
+        function openEditModal(index) {
+            currentEditIndex = index;
+            const macro = macros[index];
+            document.getElementById("modalTitle").textContent = "Edit Macro";
+            document.getElementById("macroName").value = macro.name;
+            document.getElementById("macroCategory").value = macro.category;
+            document.getElementById("macroContent").value = macro.content;
+            document.getElementById("modal").classList.add("active");
+        }
+
+        // Save macro
+        function saveMacro() {
+            const name = document.getElementById("macroName").value.trim();
+            const category = document.getElementById("macroCategory").value;
+            const content = document.getElementById("macroContent").value.trim();
+
+            if (!name || !content) {
+                alert("Please fill in all fields!");
+                return;
+            }
+
+            if (currentEditIndex !== null) {
+                macros[currentEditIndex] = { name, category, content };
+            } else {
+                macros.push({ name, category, content });
+            }
+
+            saveMacrosToStorage();
+            renderMacros();
+            renderCategories();
+            closeModal();
+        }
+
+        // Delete macro
+        function deleteMacro(index) {
+            if (confirm("Delete this macro?")) {
+                macros.splice(index, 1);
+                saveMacrosToStorage();
+                renderMacros();
+                renderCategories();
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById("modal").classList.remove("active");
+            currentEditIndex = null;
+        }
+
+        // Search functionality
+        document.getElementById("searchBar").addEventListener("input", renderMacros);
+
+        // Close modal on outside click
+        document.getElementById("modal").addEventListener("click", (e) => {
+            if (e.target === document.getElementById("modal")) {
+                closeModal();
+            }
+        });
+
+        // Initialize on page load
+        loadMacros();
+    </script>
+
 </body>
 </html>
