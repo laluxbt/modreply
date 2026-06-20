@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ModReply - Discord Moderator Tool</title>
+    <title>ModReply - Discord Moderator Template Tool</title>
     <style>
         * {
             margin: 0;
@@ -13,74 +13,128 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: #1F2937;
+            background: #f5f5f5;
             padding: 20px;
         }
 
-        /* ── HEADER WITH LOGO ── */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 30px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .logo {
-            width: 50px;
-            height: 50px;
+        /* ── FLOATING BUBBLE (FAB) ── */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #2E86AB 0%, #1B5E75 100%);
-            border-radius: 10px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(46, 134, 171, 0.4);
+            transition: all 0.3s ease;
+            z-index: 999;
+            border: none;
+        }
+
+        .fab:hover {
+            width: 65px;
+            height: 65px;
+            box-shadow: 0 6px 20px rgba(46, 134, 171, 0.6);
+            transform: scale(1.05);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        .fab-icon {
+            font-size: 28px;
             color: white;
-            font-size: 24px;
         }
 
-        .header-title {
-            flex: 1;
+        /* ── MODAL (Hidden by default) ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: flex-end;
+            z-index: 1000;
         }
 
-        .header-title h1 {
-            font-size: 24px;
-            color: #1F2937;
-            margin-bottom: 4px;
+        .modal-overlay.active {
+            display: flex;
         }
 
-        .header-title p {
-            font-size: 13px;
-            color: #6B7280;
-        }
-
-        /* ── CONTAINER ── */
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
+        .modal {
             background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ── MODAL HEADER ── */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6B7280;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #1F2937;
         }
 
         /* ── SEARCH BAR ── */
-        .search-section {
-            margin-bottom: 25px;
-        }
-
         .search-bar {
             width: 100%;
-            padding: 14px 16px;
+            padding: 12px 16px;
             border: 2px solid #E5E7EB;
             border-radius: 10px;
-            font-size: 15px;
-            transition: all 0.2s;
+            font-size: 14px;
+            margin-bottom: 15px;
+            transition: border-color 0.2s;
         }
 
         .search-bar:focus {
@@ -89,108 +143,54 @@
             box-shadow: 0 0 0 3px rgba(46, 134, 171, 0.1);
         }
 
-        /* ── CATEGORIES ── */
-        .categories {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-        }
-
-        .category-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 20px;
-            background: #F3F4F6;
-            color: #6B7280;
-            cursor: pointer;
-            font-size: 13px;
-            white-space: nowrap;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-
-        .category-btn.active {
-            background: #2E86AB;
-            color: white;
-        }
-
-        .category-btn:hover {
-            background: #E5E7EB;
-        }
-
-        .category-btn.active:hover {
-            background: #1B5E75;
-        }
-
         /* ── MACRO LIST ── */
         .macro-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .macro-item {
             background: #F9FAFB;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 8px;
             border-left: 4px solid #2E86AB;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
         .macro-item:hover {
             background: #F3F4F6;
             transform: translateX(4px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .macro-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
         }
 
         .macro-name {
             font-weight: 600;
             color: #1F2937;
-            font-size: 15px;
-        }
-
-        .macro-category {
-            font-size: 11px;
-            background: #E5E7EB;
-            color: #6B7280;
-            padding: 2px 8px;
-            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 4px;
         }
 
         .macro-preview {
             color: #6B7280;
-            font-size: 13px;
+            font-size: 12px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin-bottom: 10px;
         }
 
-        .macro-actions {
-            display: flex;
-            gap: 8px;
-        }
-
+        /* ── COPY BUTTON ── */
         .copy-btn {
-            flex: 1;
             background: #2E86AB;
             color: white;
             border: none;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-radius: 6px;
             font-size: 12px;
             cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
+            transition: background 0.2s;
+            margin-top: 8px;
+            width: 100%;
         }
 
         .copy-btn:hover {
@@ -201,434 +201,172 @@
             background: #10B981;
         }
 
-        .edit-btn {
-            background: #F3F4F6;
-            color: #6B7280;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .edit-btn:hover {
-            background: #E5E7EB;
-            color: #1F2937;
-        }
-
-        .delete-btn {
-            background: #FEE2E2;
-            color: #DC2626;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .delete-btn:hover {
-            background: #FCA5A5;
-        }
-
-        /* ── ADD MACRO BUTTON ── */
-        .add-macro-section {
-            margin-top: 25px;
-            padding-top: 25px;
-            border-top: 2px solid #F3F4F6;
-        }
-
-        .add-btn {
-            width: 100%;
-            background: #2E86AB;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .add-btn:hover {
-            background: #1B5E75;
-        }
-
-        /* ── MODAL ── */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
+        /* ── DEMO CONTENT ── */
+        .demo-content {
             background: white;
-            padding: 25px;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            font-size: 18px;
-            font-weight: 600;
+            padding: 20px;
+            border-radius: 10px;
             margin-bottom: 20px;
+        }
+
+        .demo-content h2 {
+            margin-bottom: 10px;
             color: #1F2937;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #1F2937;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #E5E7EB;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #2E86AB;
-            box-shadow: 0 0 0 3px rgba(46, 134, 171, 0.1);
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .modal-save {
-            background: #2E86AB;
-            color: white;
-        }
-
-        .modal-save:hover {
-            background: #1B5E75;
-        }
-
-        .modal-cancel {
-            background: #F3F4F6;
+        .demo-content p {
             color: #6B7280;
-        }
-
-        .modal-cancel:hover {
-            background: #E5E7EB;
-        }
-
-        /* ── EMPTY STATE ── */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #9CA3AF;
-        }
-
-        .empty-state p {
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-
-        /* ── RESPONSIVE ── */
-        @media (max-width: 480px) {
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .container {
-                padding: 20px;
-            }
-
-            .macro-actions {
-                flex-direction: column;
-            }
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
 
-    <!-- Header with Logo -->
-    <div class="header">
-        <div class="logo">⚡</div>
-        <div class="header-title">
-            <h1>ModReply</h1>
-            <p>Discord Moderator Macro Tool</p>
-        </div>
+    <!-- Demo Content -->
+    <div class="demo-content">
+        <h2>📌 ModReply</h2>
+        <p>Click the blue bubble in the bottom right to open your saved macros!</p>
     </div>
 
-    <!-- Main Container -->
-    <div class="container">
-        <!-- Search Bar -->
-        <div class="search-section">
+    <!-- Floating Bubble (FAB) -->
+    <button class="fab" id="fabBtn" title="Open ModReply">
+        <span class="fab-icon">💬</span>
+    </button>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h2 class="modal-title">ModReply Macros</h2>
+                <button class="modal-close" id="closeBtn">&times;</button>
+            </div>
+
+            <!-- Search Bar -->
             <input 
                 type="text" 
-                id="searchBar" 
                 class="search-bar" 
-                placeholder="🔍 Search macros by name or content..."
+                id="searchBar" 
+                placeholder="Search macros... (type to filter)"
             >
-        </div>
 
-        <!-- Categories -->
-        <div class="categories" id="categories"></div>
-
-        <!-- Macro List -->
-        <div class="macro-list" id="macroList">
-            <div class="empty-state">
-                <p>📭 No macros saved yet</p>
-                <p>Click "Add Macro" below to get started!</p>
-            </div>
-        </div>
-
-        <!-- Add Macro Section -->
-        <div class="add-macro-section">
-            <button class="add-btn" onclick="openAddModal()">+ Add Macro</button>
-        </div>
-    </div>
-
-    <!-- Modal for Add/Edit -->
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Add New Macro</div>
-            
-            <div class="form-group">
-                <label>Macro Name</label>
-                <input type="text" id="macroName" placeholder="e.g., Welcome Message">
-            </div>
-
-            <div class="form-group">
-                <label>Category</label>
-                <select id="macroCategory">
-                    <option value="General">General</option>
-                    <option value="Greeting">Greeting</option>
-                    <option value="KYC">KYC</option>
-                    <option value="Support">Support</option>
-                    <option value="Rules">Rules</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Content</label>
-                <textarea id="macroContent" placeholder="Enter your macro text here..."></textarea>
-            </div>
-
-            <div class="modal-buttons">
-                <button class="modal-save" onclick="saveMacro()">Save</button>
-                <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+            <!-- Macro List -->
+            <div class="macro-list" id="macroList">
+                <p style="color: #9CA3AF; text-align: center; padding: 20px;">
+                    No macros yet. Add some to get started!
+                </p>
             </div>
         </div>
     </div>
 
     <script>
-        const STORAGE_KEY = "modreply_macros";
-        let macros = [];
-        let currentEditIndex = null;
-        let currentCategory = "All";
+        const fabBtn = document.getElementById('fabBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const closeBtn = document.getElementById('closeBtn');
+        const searchBar = document.getElementById('searchBar');
+        const macroList = document.getElementById('macroList');
 
-        // Load macros on startup
+        const STORAGE_KEY = 'modreply_macros';
+
+        // Load macros from localStorage
         function loadMacros() {
             const stored = localStorage.getItem(STORAGE_KEY);
-            macros = stored ? JSON.parse(stored) : [];
-            renderMacros();
-            renderCategories();
+            return stored ? JSON.parse(stored) : [];
         }
 
         // Save macros to localStorage
-        function saveMacrosToStorage() {
+        function saveMacros(macros) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(macros));
         }
 
-        // Render categories
-        function renderCategories() {
-            const categories = ["All", ...new Set(macros.map(m => m.category))];
-            const categoriesDiv = document.getElementById("categories");
-            
-            categoriesDiv.innerHTML = categories.map(cat => `
-                <button class="category-btn ${currentCategory === cat ? "active" : ""}" 
-                        onclick="filterByCategory('${cat}')">
-                    ${cat}
-                </button>
-            `).join("");
-        }
+        let macros = loadMacros();
 
-        // Filter by category
-        function filterByCategory(category) {
-            currentCategory = category;
-            renderCategories();
-            renderMacros();
-        }
+        // Open modal when bubble is clicked
+        fabBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('active');
+            searchBar.focus();
+        });
 
-        // Render macros
-        function renderMacros() {
-            const searchTerm = document.getElementById("searchBar").value.toLowerCase();
-            
-            let filtered = macros.filter(macro => {
-                const matchesSearch = macro.name.toLowerCase().includes(searchTerm) || 
-                                     macro.content.toLowerCase().includes(searchTerm);
-                const matchesCategory = currentCategory === "All" || macro.category === currentCategory;
-                return matchesSearch && matchesCategory;
-            });
+        // Close modal when X is clicked
+        closeBtn.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+        });
 
-            const macroList = document.getElementById("macroList");
-
-            if (filtered.length === 0) {
-                macroList.innerHTML = `
-                    <div class="empty-state">
-                        <p>📭 No macros found</p>
-                        <p>Try a different search or add a new macro</p>
-                    </div>
-                `;
-                return;
-            }
-
-            macroList.innerHTML = filtered.map((macro, index) => `
-                <div class="macro-item">
-                    <div class="macro-header">
-                        <div class="macro-name">${macro.name}</div>
-                        <div class="macro-category">${macro.category}</div>
-                    </div>
-                    <div class="macro-preview">${macro.content}</div>
-                    <div class="macro-actions">
-                        <button class="copy-btn" onclick="copyMacro('${macro.name}', ${macros.indexOf(macro)})">📋 Copy</button>
-                        <button class="edit-btn" onclick="openEditModal(${macros.indexOf(macro)})">✏️ Edit</button>
-                        <button class="delete-btn" onclick="deleteMacro(${macros.indexOf(macro)})">🗑️</button>
-                    </div>
-                </div>
-            `).join("");
-        }
-
-        // Copy macro
-        function copyMacro(name, index) {
-            const text = macros[index].content;
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = event.target;
-                btn.textContent = "✅ Copied!";
-                btn.classList.add("copied");
-                setTimeout(() => {
-                    btn.textContent = "📋 Copy";
-                    btn.classList.remove("copied");
-                }, 2000);
-            });
-        }
-
-        // Open add modal
-        function openAddModal() {
-            currentEditIndex = null;
-            document.getElementById("modalTitle").textContent = "Add New Macro";
-            document.getElementById("macroName").value = "";
-            document.getElementById("macroCategory").value = "General";
-            document.getElementById("macroContent").value = "";
-            document.getElementById("modal").classList.add("active");
-        }
-
-        // Open edit modal
-        function openEditModal(index) {
-            currentEditIndex = index;
-            const macro = macros[index];
-            document.getElementById("modalTitle").textContent = "Edit Macro";
-            document.getElementById("macroName").value = macro.name;
-            document.getElementById("macroCategory").value = macro.category;
-            document.getElementById("macroContent").value = macro.content;
-            document.getElementById("modal").classList.add("active");
-        }
-
-        // Save macro
-        function saveMacro() {
-            const name = document.getElementById("macroName").value.trim();
-            const category = document.getElementById("macroCategory").value;
-            const content = document.getElementById("macroContent").value.trim();
-
-            if (!name || !content) {
-                alert("Please fill in all fields!");
-                return;
-            }
-
-            if (currentEditIndex !== null) {
-                macros[currentEditIndex] = { name, category, content };
-            } else {
-                macros.push({ name, category, content });
-            }
-
-            saveMacrosToStorage();
-            renderMacros();
-            renderCategories();
-            closeModal();
-        }
-
-        // Delete macro
-        function deleteMacro(index) {
-            if (confirm("Delete this macro?")) {
-                macros.splice(index, 1);
-                saveMacrosToStorage();
-                renderMacros();
-                renderCategories();
-            }
-        }
-
-        // Close modal
-        function closeModal() {
-            document.getElementById("modal").classList.remove("active");
-            currentEditIndex = null;
-        }
-
-        // Search functionality
-        document.getElementById("searchBar").addEventListener("input", renderMacros);
-
-        // Close modal on outside click
-        document.getElementById("modal").addEventListener("click", (e) => {
-            if (e.target === document.getElementById("modal")) {
-                closeModal();
+        // Close modal when overlay background is clicked
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.classList.remove('active');
             }
         });
 
-        // Initialize on page load
-        loadMacros();
+        // Render macros
+        function renderMacros(macrosToShow) {
+            if (macrosToShow.length === 0) {
+                macroList.innerHTML = '<p style="color: #9CA3AF; text-align: center; padding: 20px;">No macros found.</p>';
+                return;
+            }
+
+            macroList.innerHTML = macrosToShow.map((macro, index) => `
+                <div class="macro-item">
+                    <div class="macro-name">${macro.name}</div>
+                    <div class="macro-preview">${macro.content}</div>
+                    <button class="copy-btn" data-index="${index}">📋 Copy</button>
+                </div>
+            `).join('');
+
+            // Add copy button listeners
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = btn.getAttribute('data-index');
+                    const text = macrosToShow[index].content;
+                    
+                    navigator.clipboard.writeText(text).then(() => {
+                        btn.textContent = '✅ Copied!';
+                        btn.classList.add('copied');
+                        setTimeout(() => {
+                            btn.textContent = '📋 Copy';
+                            btn.classList.remove('copied');
+                        }, 2000);
+                    });
+                });
+            });
+        }
+
+        // Search/filter macros
+        searchBar.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = macros.filter(macro => 
+                macro.name.toLowerCase().includes(query) || 
+                macro.content.toLowerCase().includes(query)
+            );
+            renderMacros(filtered);
+        });
+
+        // Add macro (simple prompt method)
+        function addMacro() {
+            const name = prompt('Macro name:');
+            if (!name) return;
+            const content = prompt('Macro content:');
+            if (!content) return;
+            macros.push({ name, content });
+            saveMacros(macros);
+            renderMacros(macros);
+        }
+
+        // Keyboard shortcut (Alt+M to open)
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 'm') {
+                e.preventDefault();
+                modalOverlay.classList.add('active');
+                searchBar.focus();
+            }
+        });
+
+        // Initial render
+        renderMacros(macros);
+
+        // Expose addMacro to window for quick access
+        window.addMacro = addMacro;
     </script>
 
 </body>
