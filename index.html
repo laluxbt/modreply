@@ -1,681 +1,505 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ModReply - Macro Manager</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
-            min-height: 100vh;
-            padding: 15px;
-            color: #fff;
-        }
-
-        /* ── HEADER ── */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            padding: 15px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-        }
-
-        .logo {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #5B7FFF 0%, #3B5FFF 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .header-title h1 {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .header-title p {
-            font-size: 12px;
-            color: #aaa;
-            margin-top: 2px;
-        }
-
-        /* ── CATEGORIES ── */
-        .categories {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding: 5px 0;
-        }
-
-        .category-btn {
-            padding: 8px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: transparent;
-            color: #aaa;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            white-space: nowrap;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-
-        .category-btn.active {
-            background: linear-gradient(135deg, #5B7FFF 0%, #3B5FFF 100%);
-            color: white;
-            border-color: #5B7FFF;
-        }
-
-        .category-btn:hover {
-            background: rgba(91, 127, 255, 0.2);
-            border-color: #5B7FFF;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #ff4757;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 5px;
-        }
-
-        /* ── MACRO CARDS ── */
-        .macros-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 80px;
-        }
-
-        .macro-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 16px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-
-        .macro-card:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .macro-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-
-        .macro-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: white;
-        }
-
-        .category-label {
-            font-size: 11px;
-            background: rgba(91, 127, 255, 0.3);
-            color: #5B7FFF;
-            padding: 3px 10px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .macro-content {
-            font-size: 13px;
-            color: #bbb;
-            line-height: 1.5;
-            margin-bottom: 12px;
-        }
-
-        .macro-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-copy {
-            flex: 1;
-            background: rgba(91, 127, 255, 0.3);
-            color: #5B7FFF;
-            border: 1px solid #5B7FFF;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-
-        .btn-copy:hover {
-            background: #5B7FFF;
-            color: white;
-        }
-
-        .btn-copy.copied {
-            background: #2ed573;
-            color: white;
-            border-color: #2ed573;
-        }
-
-        .btn-edit {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ddd;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-edit:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-delete {
-            background: rgba(255, 71, 87, 0.2);
-            color: #ff4757;
-            border: 1px solid #ff4757;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-delete:hover {
-            background: #ff4757;
-            color: white;
-        }
-
-        /* ── SEARCH BAR ── */
-        .search-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(15, 15, 30, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            display: flex;
-            gap: 10px;
-            z-index: 100;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .search-input {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 25px;
-            font-size: 13px;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .search-input::placeholder {
-            color: #888;
-        }
-
-        .search-input:focus {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: #5B7FFF;
-        }
-
-        /* ── FLOATING ADD BUTTON ── */
-        .btn-add {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #5B7FFF 0%, #3B5FFF 100%);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(91, 127, 255, 0.4);
-            transition: all 0.3s;
-            flex-shrink: 0;
-        }
-
-        .btn-add:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(91, 127, 255, 0.6);
-        }
-
-        .btn-add:active {
-            transform: scale(0.95);
-        }
-
-        /* ── MODAL ── */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            align-items: flex-end;
-            z-index: 200;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: #1a1a2e;
-            width: 100%;
-            border-radius: 20px 20px 0 0;
-            padding: 20px;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-            to {
-                transform: translateY(0);
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-header h2 {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: #aaa;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            color: #aaa;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: #5B7FFF;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .form-group select option {
-            background: #1a1a2e;
-            color: white;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn-submit {
-            flex: 1;
-            background: linear-gradient(135deg, #5B7FFF 0%, #3B5FFF 100%);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(91, 127, 255, 0.4);
-        }
-
-        .btn-cancel {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            color: #aaa;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-cancel:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        /* ── EMPTY STATE ── */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #888;
-        }
-
-        .empty-state p {
-            font-size: 14px;
-        }
-
-        /* ── RESPONSIVE ── */
-        @media (max-width: 480px) {
-            .search-container {
-                padding: 12px;
-            }
-
-            .btn-add {
-                width: 45px;
-                height: 45px;
-                font-size: 20px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="ModReply"/>
+  <meta name="theme-color" content="#1E1F22"/>
+  <title>ModReply</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#1E1F22;--surface:#2B2D31;--card:#313338;--border:#3F4147;
+      --blurple:#5865F2;--blurple-d:#4752C4;--green:#23A55A;--red:#F23F43;
+      --text:#DBDEE1;--muted:#949BA4;--white:#FFFFFF;--radius:12px;--radius-sm:8px;
+    }
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+    #app{height:100%;display:flex;flex-direction:column}
+ 
+    /* HEADER */
+    .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-shrink:0}
+    .header-left{display:flex;align-items:center;gap:10px}
+    .logo{width:32px;height:32px;background:var(--blurple);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
+    .header h1{font-size:17px;font-weight:700;color:var(--white)}
+    .icon-btn{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:background .15s,color .15s}
+    .icon-btn:active{background:var(--blurple);color:var(--white);border-color:var(--blurple)}
+ 
+    /* CATEGORIES */
+    .cat-scroll{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+    .cat-scroll::-webkit-scrollbar{display:none}
+    .cat-chip{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;flex-shrink:0;display:flex;align-items:center;gap:5px}
+    .cat-chip.active{background:var(--blurple);border-color:var(--blurple);color:var(--white)}
+    .count-badge{display:inline-flex;align-items:center;justify-content:center;background:rgba(88,101,242,0.3);color:var(--blurple);font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;padding:0 5px}
+    .cat-chip.active .count-badge{background:rgba(255,255,255,0.25);color:var(--white)}
+ 
+    /* MAIN */
+    .main{flex:1;overflow-y:auto;padding:0 16px 16px;-webkit-overflow-scrolling:touch}
+ 
+    /* CARDS */
+    .template-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s,transform .1s;position:relative;overflow:hidden}
+    .template-card:active{transform:scale(0.985)}
+    .template-card.copied{border-color:var(--green)}
+    .copy-badge{position:absolute;top:10px;right:12px;background:var(--green);color:white;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;animation:fadeOut 1.4s forwards;pointer-events:none}
+    @keyframes fadeOut{0%,70%{opacity:1}100%{opacity:0}}
+    .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .card-title{font-size:14px;font-weight:700;color:var(--white);line-height:1.3}
+    .shortcode{font-size:11px;font-weight:700;color:var(--blurple);background:rgba(88,101,242,0.15);border:1px solid rgba(88,101,242,0.3);padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+    .card-body{font-size:13.5px;color:var(--muted);line-height:1.55;white-space:pre-wrap;word-break:break-word}
+    .var-tag{color:#E8912D;font-weight:600}
+    .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+    .cat-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+    .card-actions{display:flex;gap:6px}
+    .small-btn{padding:4px 10px;font-size:12px;font-weight:600;border-radius:6px;border:none;cursor:pointer;transition:background .15s;font-family:inherit}
+    .btn-edit{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+    .btn-delete{background:rgba(242,63,67,0.1);color:var(--red);border:1px solid rgba(242,63,67,0.25)}
+    .btn-delete:active{background:var(--red);color:white}
+ 
+    /* EMPTY */
+    .empty{text-align:center;padding:60px 20px;color:var(--muted)}
+    .empty-icon{font-size:48px;margin-bottom:16px}
+    .empty h3{font-size:16px;color:var(--text);margin-bottom:8px}
+    .empty p{font-size:13px;line-height:1.6}
+ 
+    /* SEARCH BAR */
+    .search-bar{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));flex-shrink:0;display:flex;gap:10px;align-items:center}
+    .search-wrap{flex:1;position:relative}
+    .search-icon-label{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none}
+    .search-input{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:14px;padding:10px 12px 10px 36px;outline:none;transition:border-color .15s}
+    .search-input:focus{border-color:var(--blurple)}
+    .search-input::placeholder{color:var(--muted)}
+    .add-btn{width:42px;height:42px;border-radius:var(--radius-sm);background:var(--blurple);border:none;color:white;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;font-weight:300;line-height:1;font-family:inherit}
+    .add-btn:active{background:var(--blurple-d)}
+ 
+    /* FLOATING WIDGET */
+    .fab{position:fixed;width:54px;height:54px;border-radius:50%;background:var(--blurple);box-shadow:0 4px 20px rgba(88,101,242,0.5);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;z-index:9999;user-select:none;touch-action:none;border:2px solid rgba(255,255,255,0.15)}
+    .fab.open{background:var(--blurple-d)}
+    .widget-drawer{position:fixed;z-index:9998;background:var(--surface);border:1px solid var(--border);border-radius:16px;width:300px;max-height:400px;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.6);overflow:hidden}
+    .widget-drawer.hidden{display:none}
+    .widget-search-wrap{padding:10px;border-bottom:1px solid var(--border);position:relative;flex-shrink:0}
+    .widget-search-icon{position:absolute;left:20px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none}
+    .widget-search{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:13px;padding:8px 10px 8px 32px;outline:none;transition:border-color .15s}
+    .widget-search:focus{border-color:var(--blurple)}
+    .widget-search::placeholder{color:var(--muted)}
+    .widget-list{overflow-y:auto;flex:1;padding:6px}
+    .widget-item{padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .12s;margin-bottom:2px}
+    .widget-item:active{background:var(--card)}
+    .widget-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+    .widget-item-title{font-size:13px;font-weight:600;color:var(--white)}
+    .widget-item-code{font-size:10px;font-weight:700;color:var(--blurple);background:rgba(88,101,242,0.15);padding:1px 7px;border-radius:10px}
+    .widget-item-preview{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .widget-status{text-align:center;padding:8px;font-size:12px;font-weight:700;color:var(--green);border-top:1px solid var(--border);flex-shrink:0}
+    .widget-empty{text-align:center;padding:30px 10px;color:var(--muted);font-size:13px}
+ 
+    /* OVERLAYS */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:flex-end}
+    .overlay.center{align-items:center;justify-content:center;padding:20px}
+    .sheet{background:var(--surface);border-radius:20px 20px 0 0;border:1px solid var(--border);border-bottom:none;width:100%;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto}
+    .sheet-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+    .sheet h2{font-size:18px;font-weight:700;color:var(--white);margin-bottom:20px}
+    .sheet h3{font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+ 
+    /* USERNAME BOX */
+    .uname-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 20px;width:100%;max-width:320px}
+    .uname-box h3{font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px;text-transform:none;letter-spacing:0}
+    .uname-box p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+    .uname-preview{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);margin-bottom:16px;line-height:1.5;white-space:pre-wrap;word-break:break-word;min-height:48px}
+    .uname-input{width:100%;background:var(--card);border:1.5px solid var(--blurple);border-radius:var(--radius-sm);color:var(--white);font-family:inherit;font-size:15px;padding:11px 14px;outline:none;margin-bottom:16px}
+    .uname-input::placeholder{color:var(--muted)}
+ 
+    /* FORM */
+    .field{margin-bottom:16px}
+    .field label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+    .field input,.field textarea,.field select{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:14px;padding:10px 12px;outline:none;transition:border-color .15s;resize:none}
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blurple)}
+    .field select option{background:var(--card)}
+    .field-hint{font-size:11px;color:var(--muted);margin-top:5px}
+    .var-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .var-chip{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(232,145,45,0.15);color:#E8912D;border:1px solid rgba(232,145,45,0.3);cursor:pointer}
+ 
+    /* BUTTONS */
+    .row-btns{display:flex;gap:10px;margin-top:20px}
+    .btn-cancel{flex:1;padding:11px;border-radius:var(--radius-sm);background:var(--card);border:1.5px solid var(--border);color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
+    .btn-primary{flex:2;padding:11px;border-radius:var(--radius-sm);background:var(--blurple);border:none;color:white;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
+    .btn-primary:active{background:var(--blurple-d)}
+ 
+    /* MENU ITEMS */
+    .menu-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:var(--radius-sm);cursor:pointer;transition:background .15s;margin-bottom:6px}
+    .menu-item:active{background:var(--card)}
+    .menu-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+    .menu-icon.blue{background:rgba(88,101,242,0.2)}
+    .menu-icon.green{background:rgba(35,165,90,0.2)}
+    .menu-icon.red{background:rgba(242,63,67,0.15)}
+    .menu-item-text strong{display:block;font-size:15px;font-weight:600;color:var(--white);margin-bottom:2px}
+    .menu-item-text span{font-size:12px;color:var(--muted)}
+    input[type=file]{display:none}
+  </style>
 </head>
 <body>
-
-    <!-- Header -->
-    <div class="header">
-        <div class="logo">⚡</div>
-        <div class="header-title">
-            <h1>ModReply</h1>
-            <p>Save & search macros</p>
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">⚡</div>
+      <h1>ModReply</h1>
+    </div>
+    <div class="icon-btn" id="menuBtn" style="font-size:20px">⋯</div>
+  </div>
+  <div class="cat-scroll" id="catScroll"></div>
+  <div class="main" id="main"></div>
+  <div class="search-bar">
+    <div class="search-wrap">
+      <span class="search-icon-label">🔍</span>
+      <input class="search-input" id="searchInput" placeholder="Search or type /shortcode…"/>
+    </div>
+    <button class="add-btn" id="addBtn">+</button>
+  </div>
+</div>
+ 
+<!-- FAB -->
+<div class="fab" id="fab">⚡</div>
+<div class="widget-drawer hidden" id="widgetDrawer">
+  <div class="widget-search-wrap">
+    <span class="widget-search-icon">🔍</span>
+    <input class="widget-search" id="widgetSearch" placeholder="Search templates…"/>
+  </div>
+  <div class="widget-list" id="widgetList"></div>
+  <div class="widget-status" id="widgetStatus" style="display:none"></div>
+</div>
+ 
+<!-- OVERLAYS (hidden by default) -->
+<div class="overlay hidden" id="unameOverlay">
+  <div class="overlay center" style="position:absolute;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div class="uname-box">
+      <h3 id="unameTitle">Who are you replying to?</h3>
+      <p>Type the username so it fills in before copying.</p>
+      <div class="uname-preview" id="unamePreview"></div>
+      <input class="uname-input" id="unameInput" placeholder="e.g. JohnDoe"/>
+      <div class="row-btns">
+        <button class="btn-cancel" id="unameCancelBtn">Cancel</button>
+        <button class="btn-primary" id="unameCopyBtn">Copy Message ⚡</button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<div class="overlay hidden" id="formOverlay">
+  <div class="sheet" id="formSheet">
+    <div class="sheet-handle"></div>
+    <h2 id="formTitle">New Template</h2>
+    <div class="field"><label>Title</label><input id="fTitle" placeholder="e.g. Opening Message"/></div>
+    <div class="field"><label>Shortcode</label><input id="fShortcode" placeholder="e.g. /open"/><div class="field-hint">Used for quick search. Start with /</div></div>
+    <div class="field">
+      <label>Category</label>
+      <select id="fCategory">
+        <option>Greeting</option><option>Closing</option><option>KYC</option>
+        <option>Support</option><option>Moderation</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Message</label>
+      <textarea id="fBody" rows="5" placeholder="Type your reply here..."></textarea>
+      <div class="field-hint">Tap a variable to insert at cursor:</div>
+      <div class="var-chips" id="varChips"></div>
+    </div>
+    <div class="row-btns">
+      <button class="btn-cancel" id="formCancelBtn">Cancel</button>
+      <button class="btn-primary" id="formSaveBtn">Add Template</button>
+    </div>
+  </div>
+</div>
+ 
+<div class="overlay hidden" id="menuOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3>Template Library</h3>
+    <div class="menu-item" id="exportBtn"><div class="menu-icon blue">📤</div><div class="menu-item-text"><strong>Export Templates</strong><span>Save as .json — share with other mods</span></div></div>
+    <div class="menu-item" id="importBtn"><div class="menu-icon green">📥</div><div class="menu-item-text"><strong>Import Templates</strong><span>Load from a .json file</span></div></div>
+    <div class="menu-item" id="resetBtn"><div class="menu-icon red">🔄</div><div class="menu-item-text"><strong>Reset to Defaults</strong><span>Restore original templates</span></div></div>
+    <input type="file" id="importFile" accept=".json"/>
+  </div>
+</div>
+ 
+<script>
+// ── DATA ──
+const DEFAULTS = [
+  {id:'t1',title:'Opening Message',shortcode:'/open',category:'Greeting',body:'Hi {username}! 👋 How can I assist you today?'},
+  {id:'t2',title:'Closing Message',shortcode:'/close',category:'Closing',body:'Enjoy! 🎉 Feel free to reach out anytime if you need further help.'},
+  {id:'t3',title:'KYC Reminder',shortcode:'/kyc',category:'KYC',body:'Hi {username}, please complete your KYC verification to continue. You can do this via the link in #verification. Let us know if you run into any issues!'},
+  {id:'t4',title:'KYC Approved',shortcode:'/kyc-ok',category:'KYC',body:'Great news {username}! ✅ Your KYC has been approved. You now have full access. Welcome aboard!'},
+  {id:'t5',title:'Rule Reminder',shortcode:'/rules',category:'Moderation',body:'Hey {username}, just a friendly reminder to keep discussion in line with our community rules. Please check #rules for reference. Thanks for understanding! 🙏'},
+  {id:'t6',title:'Ticket Acknowledge',shortcode:'/ack',category:'Support',body:'Hi {username}, thanks for reaching out! I have received your message and will look into this shortly. Please bear with us.'},
+  {id:'t7',title:'Escalation Notice',shortcode:'/escalate',category:'Support',body:'Hi {username}, I am escalating your issue to our senior team for further review. You will hear back within 24 hours. Apologies for the inconvenience.'},
+  {id:'t8',title:'Warning Notice',shortcode:'/warn',category:'Moderation',body:'Hi {username}, this is an official warning regarding your recent behaviour in the server. Please review our community guidelines. Repeated violations may result in further action.'},
+];
+const CATEGORIES = ['All','Greeting','Closing','KYC','Support','Moderation'];
+const VARS = ['{username}','{channel}','{date}','{time}'];
+ 
+function loadTemplates(){ try{ const s=localStorage.getItem('mr_t'); return s?JSON.parse(s):JSON.parse(JSON.stringify(DEFAULTS)); }catch{ return JSON.parse(JSON.stringify(DEFAULTS)); } }
+function saveTemplates(){ localStorage.setItem('mr_t', JSON.stringify(state.templates)); }
+ 
+// ── STATE ──
+const state = {
+  templates: loadTemplates(),
+  cat: 'All',
+  query: '',
+  editId: null,
+  unameTemplate: null,
+  unameDone: null,
+};
+ 
+// ── HELPERS ──
+function fillTemplate(body, username){
+  return body
+    .replace(/\{username\}/g, username||'{username}')
+    .replace(/\{date\}/g, new Date().toLocaleDateString())
+    .replace(/\{time\}/g, new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
+}
+function hasUsername(body){ return body.includes('{username}'); }
+function copyText(text, cb){
+  if(navigator.clipboard){ navigator.clipboard.writeText(text).then(cb).catch(()=>{ fallbackCopy(text); cb(); }); }
+  else { fallbackCopy(text); cb(); }
+}
+function fallbackCopy(text){
+  const el=document.createElement('textarea'); el.value=text;
+  el.style.position='fixed'; el.style.opacity='0';
+  document.body.appendChild(el); el.focus(); el.select();
+  document.execCommand('copy'); document.body.removeChild(el);
+}
+function renderVarHighlight(text, container){
+  container.innerHTML='';
+  text.split(/(\{[^}]+\})/g).forEach(part=>{
+    if(/^\{.+\}$/.test(part)){ const s=document.createElement('span'); s.className='var-tag'; s.textContent=part; container.appendChild(s); }
+    else container.appendChild(document.createTextNode(part));
+  });
+}
+function uid(){ return 't'+Date.now()+Math.random().toString(36).slice(2,6); }
+ 
+// ── RENDER ──
+function getFiltered(){
+  return state.templates.filter(t=>{
+    const mc = state.cat==='All'||t.category===state.cat;
+    const q  = state.query.toLowerCase();
+    const mq = !q||t.title.toLowerCase().includes(q)||t.shortcode.toLowerCase().includes(q)||t.body.toLowerCase().includes(q);
+    return mc&&mq;
+  });
+}
+ 
+function renderCategories(){
+  const el = document.getElementById('catScroll');
+  el.innerHTML='';
+  CATEGORIES.forEach(c=>{
+    const count = c==='All'?state.templates.length:state.templates.filter(t=>t.category===c).length;
+    const chip  = document.createElement('div');
+    chip.className='cat-chip'+(state.cat===c?' active':'');
+    chip.textContent=c;
+    if(count>0){
+      const badge=document.createElement('span');
+      badge.className='count-badge';
+      badge.textContent=count;
+      chip.appendChild(badge);
+    }
+    chip.addEventListener('click',()=>{ state.cat=c; render(); });
+    el.appendChild(chip);
+  });
+}
+ 
+function renderCards(){
+  const el=document.getElementById('main');
+  el.innerHTML='';
+  const list=getFiltered();
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">${state.query?'🔍':'📋'}</div><h3>${state.query?'No results found':'No templates yet'}</h3><p>${state.query?'Try a different keyword or shortcode.':'Tap + to add your first template.'}</p></div>`;
+    return;
+  }
+  list.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='template-card';
+    card.innerHTML=`
+      <div class="card-top">
+        <div class="card-title">${t.title}</div>
+        <div class="shortcode">${t.shortcode}</div>
+      </div>
+      <div class="card-body"></div>
+      <div class="card-footer">
+        <span class="cat-label">${t.category}</span>
+        <div class="card-actions">
+          <button class="small-btn btn-edit">Edit</button>
+          <button class="small-btn btn-delete">Delete</button>
         </div>
-    </div>
-
-    <!-- Categories -->
-    <div class="categories" id="categories"></div>
-
-    <!-- Macros Container -->
-    <div class="macros-container" id="macrosContainer">
-        <div class="empty-state">
-            <p>📭 No macros yet</p>
-        </div>
-    </div>
-
-    <!-- Search Bar (Fixed at bottom) -->
-    <div class="search-container">
-        <input 
-            type="text" 
-            class="search-input" 
-            id="searchInput" 
-            placeholder="🔍 Search or type /shortcode..."
-        >
-        <button class="btn-add" onclick="openAddModal()">+</button>
-    </div>
-
-    <!-- Modal for Add/Edit -->
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Add Macro</h2>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-
-            <div class="form-group">
-                <label>Macro Name</label>
-                <input type="text" id="macroName" placeholder="e.g., Opening Message">
-            </div>
-
-            <div class="form-group">
-                <label>Category</label>
-                <select id="macroCategory">
-                    <option value="Greeting">Greeting</option>
-                    <option value="Closing">Closing</option>
-                    <option value="KYC">KYC</option>
-                    <option value="Support">Support</option>
-                    <option value="Rules">Rules</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Content</label>
-                <textarea id="macroContent" placeholder="Enter your macro text here..."></textarea>
-            </div>
-
-            <div class="modal-buttons">
-                <button class="btn-submit" onclick="saveMacro()">Save</button>
-                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const STORAGE_KEY = 'modreply_macros';
-        let macros = [];
-        let currentEditIndex = null;
-        let currentCategory = 'All';
-
-        // Load macros
-        function loadMacros() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            macros = stored ? JSON.parse(stored) : [];
-            renderCategories();
-            renderMacros();
-        }
-
-        // Save to localStorage
-        function saveMacrosToStorage() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(macros));
-        }
-
-        // Render categories
-        function renderCategories() {
-            const categories = ['All', ...new Set(macros.map(m => m.category))];
-            const categoriesDiv = document.getElementById('categories');
-
-            categoriesDiv.innerHTML = categories.map(cat => {
-                const count = macros.filter(m => m.category === cat).length;
-                const badge = count > 0 && cat !== 'All' ? `<span class="badge">${count}</span>` : '';
-                return `
-                    <button class="category-btn ${currentCategory === cat ? 'active' : ''}" 
-                            onclick="filterByCategory('${cat}')">
-                        ${cat}${badge}
-                    </button>
-                `;
-            }).join('');
-        }
-
-        // Filter by category
-        function filterByCategory(category) {
-            currentCategory = category;
-            renderCategories();
-            renderMacros();
-        }
-
-        // Render macros
-        function renderMacros() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
-            let filtered = macros.filter(macro => {
-                const matchesSearch = macro.name.toLowerCase().includes(searchTerm) || 
-                                     macro.content.toLowerCase().includes(searchTerm);
-                const matchesCategory = currentCategory === 'All' || macro.category === currentCategory;
-                return matchesSearch && matchesCategory;
-            });
-
-            const container = document.getElementById('macrosContainer');
-
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <p>📭 No macros found</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = filtered.map((macro, index) => `
-                <div class="macro-card">
-                    <div class="macro-card-header">
-                        <div class="macro-name">${macro.name}</div>
-                        <div class="category-label">${macro.category}</div>
-                    </div>
-                    <div class="macro-content">${macro.content}</div>
-                    <div class="macro-actions">
-                        <button class="btn-copy" onclick="copyMacro('${macro.name}', ${macros.indexOf(macro)})">📋 Copy</button>
-                        <button class="btn-edit" onclick="openEditModal(${macros.indexOf(macro)})">Edit</button>
-                        <button class="btn-delete" onclick="deleteMacro(${macros.indexOf(macro)})">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Copy macro
-        function copyMacro(name, index) {
-            const text = macros[index].content;
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = event.target;
-                btn.textContent = '✅ Copied!';
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.textContent = '📋 Copy';
-                    btn.classList.remove('copied');
-                }, 2000);
-            });
-        }
-
-        // Open add modal
-        function openAddModal() {
-            currentEditIndex = null;
-            document.getElementById('modalTitle').textContent = 'Add Macro';
-            document.getElementById('macroName').value = '';
-            document.getElementById('macroCategory').value = 'Greeting';
-            document.getElementById('macroContent').value = '';
-            document.getElementById('modal').classList.add('active');
-        }
-
-        // Open edit modal
-        function openEditModal(index) {
-            currentEditIndex = index;
-            const macro = macros[index];
-            document.getElementById('modalTitle').textContent = 'Edit Macro';
-            document.getElementById('macroName').value = macro.name;
-            document.getElementById('macroCategory').value = macro.category;
-            document.getElementById('macroContent').value = macro.content;
-            document.getElementById('modal').classList.add('active');
-        }
-
-        // Save macro
-        function saveMacro() {
-            const name = document.getElementById('macroName').value.trim();
-            const category = document.getElementById('macroCategory').value;
-            const content = document.getElementById('macroContent').value.trim();
-
-            if (!name || !content) {
-                alert('Please fill all fields!');
-                return;
-            }
-
-            if (currentEditIndex !== null) {
-                macros[currentEditIndex] = { name, category, content };
-            } else {
-                macros.push({ name, category, content });
-            }
-
-            saveMacrosToStorage();
-            renderCategories();
-            renderMacros();
-            closeModal();
-        }
-
-        // Delete macro
-        function deleteMacro(index) {
-            if (confirm('Delete this macro?')) {
-                macros.splice(index, 1);
-                saveMacrosToStorage();
-                renderCategories();
-                renderMacros();
-            }
-        }
-
-        // Close modal
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
-            currentEditIndex = null;
-        }
-
-        // Search
-        document.getElementById('searchInput').addEventListener('input', renderMacros);
-
-        // Close modal on overlay click
-        document.getElementById('modal').addEventListener('click', (e) => {
-            if (e.target.id === 'modal') closeModal();
-        });
-
-        // Initialize
-        loadMacros();
-    </script>
-
+      </div>`;
+    renderVarHighlight(t.body, card.querySelector('.card-body'));
+ 
+    card.addEventListener('click', e=>{
+      if(e.target.classList.contains('btn-edit')){ openForm(t); return; }
+      if(e.target.classList.contains('btn-delete')){ deleteTemplate(t.id); return; }
+      tapTemplate(t, ()=>{
+        card.classList.add('copied');
+        const badge=document.createElement('div'); badge.className='copy-badge'; badge.textContent='✓ Copied!';
+        card.appendChild(badge);
+        setTimeout(()=>{ card.classList.remove('copied'); badge.remove(); },1500);
+      });
+    });
+    el.appendChild(card);
+  });
+}
+ 
+function render(){ renderCategories(); renderCards(); renderWidget(); }
+ 
+// ── TAP LOGIC ──
+function tapTemplate(t, onDone){
+  if(hasUsername(t.body)){ openUname(t, onDone); }
+  else { copyText(fillTemplate(t.body,''), onDone); }
+}
+ 
+// ── USERNAME POPUP ──
+function openUname(t, onDone){
+  state.unameTemplate=t; state.unameDone=onDone;
+  document.getElementById('unameInput').value='';
+  updateUnamePreview('');
+  document.getElementById('unameOverlay').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('unameInput').focus(),80);
+}
+function updateUnamePreview(name){
+  renderVarHighlight(fillTemplate(state.unameTemplate.body, name), document.getElementById('unamePreview'));
+}
+function closeUname(){ document.getElementById('unameOverlay').classList.add('hidden'); state.unameTemplate=null; state.unameDone=null; }
+function confirmUname(){
+  const name=document.getElementById('unameInput').value.trim();
+  copyText(fillTemplate(state.unameTemplate.body, name||'{username}'), ()=>{
+    if(state.unameDone) state.unameDone();
+    closeUname();
+  });
+}
+document.getElementById('unameInput').addEventListener('input', e=>updateUnamePreview(e.target.value));
+document.getElementById('unameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') confirmUname(); });
+document.getElementById('unameCopyBtn').addEventListener('click', confirmUname);
+document.getElementById('unameCancelBtn').addEventListener('click', closeUname);
+document.getElementById('unameOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('unameOverlay').firstElementChild) closeUname(); });
+ 
+// ── FORM ──
+function openForm(t){
+  state.editId = t?t.id:null;
+  document.getElementById('formTitle').textContent = t?'Edit Template':'New Template';
+  document.getElementById('formSaveBtn').textContent = t?'Save Changes':'Add Template';
+  document.getElementById('fTitle').value    = t?t.title:'';
+  document.getElementById('fShortcode').value= t?t.shortcode:'';
+  document.getElementById('fCategory').value = t?t.category:'Support';
+  document.getElementById('fBody').value     = t?t.body:'';
+  // render var chips
+  const chips=document.getElementById('varChips'); chips.innerHTML='';
+  VARS.forEach(v=>{ const c=document.createElement('span'); c.className='var-chip'; c.textContent=v; c.addEventListener('click',()=>insertVar(v)); chips.appendChild(c); });
+  document.getElementById('formOverlay').classList.remove('hidden');
+}
+function closeForm(){ document.getElementById('formOverlay').classList.add('hidden'); state.editId=null; }
+function insertVar(v){
+  const ta=document.getElementById('fBody');
+  const s=ta.selectionStart,e=ta.selectionEnd;
+  ta.value=ta.value.slice(0,s)+v+ta.value.slice(e);
+  ta.selectionStart=ta.selectionEnd=s+v.length; ta.focus();
+}
+function saveForm(){
+  const title=document.getElementById('fTitle').value.trim();
+  const body=document.getElementById('fBody').value.trim();
+  if(!title||!body) return;
+  const t={ title, shortcode:document.getElementById('fShortcode').value.trim(), category:document.getElementById('fCategory').value, body };
+  if(state.editId){ state.templates=state.templates.map(x=>x.id===state.editId?{...x,...t}:x); }
+  else { state.templates.unshift({...t,id:uid()}); }
+  saveTemplates(); closeForm(); render();
+}
+document.getElementById('addBtn').addEventListener('click',()=>openForm(null));
+document.getElementById('formSaveBtn').addEventListener('click',saveForm);
+document.getElementById('formCancelBtn').addEventListener('click',closeForm);
+document.getElementById('formOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('formOverlay')) closeForm(); });
+ 
+// ── DELETE ──
+function deleteTemplate(id){
+  if(!confirm('Delete this template?')) return;
+  state.templates=state.templates.filter(t=>t.id!==id);
+  saveTemplates(); render();
+}
+ 
+// ── SEARCH ──
+document.getElementById('searchInput').addEventListener('input',e=>{ state.query=e.target.value; render(); });
+ 
+// ── MENU ──
+document.getElementById('menuBtn').addEventListener('click',()=>document.getElementById('menuOverlay').classList.remove('hidden'));
+document.getElementById('menuOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('menuOverlay')) document.getElementById('menuOverlay').classList.add('hidden'); });
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(state.templates,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='modreply-templates.json'; a.click(); URL.revokeObjectURL(url);
+  document.getElementById('menuOverlay').classList.add('hidden');
+});
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=ev=>{ try{ const p=JSON.parse(ev.target.result); if(Array.isArray(p)){ state.templates=p; saveTemplates(); render(); document.getElementById('menuOverlay').classList.add('hidden'); } else alert('Invalid file.'); }catch{ alert('Could not read file.'); } }; r.readAsText(f);
+  e.target.value='';
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(confirm('Reset all templates to defaults?')){ state.templates=JSON.parse(JSON.stringify(DEFAULTS)); saveTemplates(); render(); document.getElementById('menuOverlay').classList.add('hidden'); }
+});
+ 
+// ── FLOATING WIDGET ──
+const fab=document.getElementById('fab');
+const drawer=document.getElementById('widgetDrawer');
+const wSearch=document.getElementById('widgetSearch');
+const wList=document.getElementById('widgetList');
+const wStatus=document.getElementById('widgetStatus');
+let fabOpen=false, fabDragging=false, fabMoved=false;
+let fabPos={x:window.innerWidth-70, y:window.innerHeight-160};
+let touchStart={x:0,y:0}, posStart={x:0,y:0};
+ 
+function setFabPos(x,y){
+  x=Math.max(0,Math.min(window.innerWidth-54,x));
+  y=Math.max(0,Math.min(window.innerHeight-54,y));
+  fabPos={x,y};
+  fab.style.left=x+'px'; fab.style.top=y+'px';
+}
+setFabPos(fabPos.x, fabPos.y);
+ 
+function positionDrawer(){
+  let dx=fabPos.x+27-150, dy=fabPos.y-412;
+  dx=Math.max(8,Math.min(window.innerWidth-308,dx));
+  if(dy<8) dy=fabPos.y+62;
+  drawer.style.left=dx+'px'; drawer.style.top=dy+'px';
+}
+ 
+function openWidget(){ fabOpen=true; fab.classList.add('open'); fab.textContent='✕'; positionDrawer(); drawer.classList.remove('hidden'); wSearch.value=''; renderWidget(); setTimeout(()=>wSearch.focus(),50); }
+function closeWidget(){ fabOpen=false; fab.classList.remove('open'); fab.textContent='⚡'; drawer.classList.add('hidden'); }
+ 
+fab.addEventListener('touchstart',e=>{ fabDragging=true; fabMoved=false; touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY}; posStart={...fabPos}; e.preventDefault(); },{passive:false});
+fab.addEventListener('touchmove',e=>{ if(!fabDragging) return; const dx=e.touches[0].clientX-touchStart.x,dy=e.touches[0].clientY-touchStart.y; if(Math.abs(dx)>5||Math.abs(dy)>5) fabMoved=true; setFabPos(posStart.x+dx,posStart.y+dy); if(fabOpen) closeWidget(); e.preventDefault(); },{passive:false});
+fab.addEventListener('touchend',()=>{ fabDragging=false; if(!fabMoved){ fabOpen?closeWidget():openWidget(); } });
+fab.addEventListener('click',()=>{ if(!fabMoved){ fabOpen?closeWidget():openWidget(); } fabMoved=false; });
+ 
+wSearch.addEventListener('input',()=>renderWidget());
+ 
+function renderWidget(){
+  const q=wSearch.value.toLowerCase();
+  const list=state.templates.filter(t=>!q||t.title.toLowerCase().includes(q)||t.shortcode.toLowerCase().includes(q)||t.body.toLowerCase().includes(q));
+  wList.innerHTML='';
+  wStatus.style.display='none';
+  if(!list.length){ wList.innerHTML='<div class="widget-empty">No templates found</div>'; return; }
+  list.forEach(t=>{
+    const item=document.createElement('div'); item.className='widget-item';
+    item.innerHTML=`<div class="widget-item-top"><span class="widget-item-title">${t.title}</span><span class="widget-item-code">${t.shortcode}</span></div><div class="widget-item-preview">${t.body.replace(/</g,'&lt;')}</div>`;
+    item.addEventListener('click',()=>{
+      tapTemplate(t,()=>{
+        wStatus.textContent='✓ Copied — '+t.title;
+        wStatus.style.display='block';
+        setTimeout(()=>{ wStatus.style.display='none'; },1500);
+      });
+    });
+    wList.appendChild(item);
+  });
+}
+ 
+// Close drawer on outside tap
+document.addEventListener('click',e=>{ if(fabOpen && !drawer.contains(e.target) && e.target!==fab) closeWidget(); });
+ 
+// ── INIT ──
+render();
+</script>
 </body>
 </html>
